@@ -288,8 +288,13 @@ const CONFIG = {
   apiBase: "",
   // Nur nötig, wenn in der config.yml ein access-key gesetzt ist.
   accessKey: "",
-  // Gespeicherter Stand (vom Plugin zu GitHub hochgeladen), wird gezeigt, wenn der Server aus ist.
+  // Gespeicherter Stand, den das Plugin zu GitHub hochlädt. Wird gezeigt, wenn die Seite den Server nicht live erreicht.
+  // github: "NAME/REPOSITORY". Leer = automatisch aus der Adresse NAME.github.io/REPOSITORY.
+  github: "",
+  dataBranch: "livestats-data",
   cacheFile: "data.json",
+  // Wie oft die Seite den gespeicherten Stand neu holt (Sekunden).
+  cacheRefresh: 90,
   // Bild der Welt als Hintergrund der Karte. Leer = nur Raster.
   mapImage: "karte.png",
 };
@@ -927,24 +932,46 @@ function startLive() {
   };
 }
 
-// Server nicht erreichbar: zuletzt gespeicherten Stand anzeigen (falls vorhanden).
+// Wo liegt der gespeicherte Stand? Bei GitHub Pages im Daten-Zweig des Repositorys.
+function githubRepo() {
+  if (CONFIG.github) return CONFIG.github;
+  const m = location.hostname.match(/^([a-z0-9-]+)\.github\.io$/i);
+  if (!m) return "";
+  const first = location.pathname.split("/").filter(Boolean)[0];
+  return m[1] + "/" + (first && !first.includes(".") ? first : m[1] + ".github.io");
+}
+async function fetchCache() {
+  const repo = githubRepo(), file = CONFIG.cacheFile;
+  const urls = repo ? [
+    // GitHub-API: immer aktuell; unveraenderte Antworten (304) zaehlen nicht gegen das Abruflimit.
+    { url: `https://api.github.com/repos/${repo}/contents/${file}?ref=${encodeURIComponent(CONFIG.dataBranch)}`, opt: { cache: "no-cache", headers: { Accept: "application/vnd.github.raw" } } },
+    // Ersatz, falls das Limit erreicht ist (kann bis zu 5 Minuten alt sein).
+    { url: `https://raw.githubusercontent.com/${repo}/${encodeURIComponent(CONFIG.dataBranch)}/${file}`, opt: { cache: "no-cache" } },
+  ] : [];
+  urls.push({ url: file + "?t=" + Date.now(), opt: { cache: "no-store" } });
+  for (const u of urls) {
+    try { const res = await fetch(u.url, u.opt); if (res.ok) return await res.json(); } catch { /* naechste Quelle */ }
+  }
+  return null;
+}
+
+// Server nicht erreichbar: zuletzt gespeicherten Stand anzeigen und regelmaessig neu holen.
+let cacheTimer = null;
 async function loadCache() {
   if (!CONFIG.cacheFile || Date.now() - lastCacheTry < 30000) return;
   lastCacheTry = Date.now();
-  try {
-    const res = await fetch(CONFIG.cacheFile + "?t=" + Date.now(), { cache: "no-store" });
-    if (!res.ok || mode === "live") return;
-    const data = await res.json();
-    if (mode === "live" || !data.stats) return;
-    const players = (data.stats.players || []).map((p) => ({ ...p, online: false }));
-    onData({ ...data.stats, online: 0, players });
-    if (data.plots) onPlots(data.plots);
-    const t = new Date(data.savedAt || data.stats.time || Date.now());
-    const when = t.toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-    setStatus("cache", "Server offline · Stand " + when);
-    $("age").textContent = when + " Uhr";
-    $("map-hint").textContent = "Der Server ist gerade aus. Bauplätze kannst du einzeichnen, sobald er wieder läuft.";
-  } catch { /* keine gespeicherte Datei */ }
+  if (!cacheTimer) cacheTimer = setInterval(() => { if (mode !== "live") loadCache(); }, Math.max(60, CONFIG.cacheRefresh) * 1000);
+  const data = await fetchCache();
+  if (!data || !data.stats || mode === "live") return;
+  const t = new Date(data.savedAt || data.stats.time || Date.now());
+  const when = t.toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const fresh = Date.now() - t.getTime() < 5 * 60000;   // Server laeuft noch und laedt regelmaessig hoch
+  const players = (data.stats.players || []).map((p) => ({ ...p, online: fresh && p.online !== false }));
+  onData({ ...data.stats, online: fresh ? data.stats.online : 0, players });
+  if (data.plots) onPlots(data.plots);
+  setStatus("cache", (fresh ? "Stand " : "Server offline · Stand ") + when);
+  $("age").textContent = when + " Uhr (aktualisiert sich alle " + Math.max(60, CONFIG.cacheRefresh) + " s)";
+  $("map-hint").textContent = "Hier siehst du die Bauplätze. Neue einzeichnen kannst du über den Link direkt vom Server.";
 }
 
 function startDemo() {
