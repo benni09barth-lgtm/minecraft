@@ -375,7 +375,7 @@
   :root[data-theme="amethyst"] .chip { border-top: 0; box-shadow: inset 0 0 0 2px var(--panel2), 0 0 0 2px #000; }
 
   .summary .chip { overflow: hidden; }
-  .summary .chip span { overflow-wrap: break-word; hyphens: auto; }
+  .summary .chip span { overflow-wrap: normal; hyphens: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .summary .chip strong { font-size: clamp(13px, 1.7vw, 16px); white-space: normal; overflow-wrap: anywhere; }
   @media (max-width: 560px) {
     :root[data-layout="podium"] .row[data-rank="1"] .name p, :root[data-layout="podium"] .row[data-rank="2"] .name p, :root[data-layout="podium"] .row[data-rank="3"] .name p,
@@ -553,6 +553,28 @@
   .steps a { color: var(--accent, #c88cff); }
   .steps code { font-size: 13px; padding: 1px 5px; background: rgba(0,0,0,.35); color: var(--chalk); overflow-wrap: anywhere; }
   .mp-note { margin: 14px 0 0; font-size: 14px; color: var(--chalk-dim); }
+
+  .rules-warn { margin: 18px 0 0; padding: 14px 16px 14px 54px; position: relative; color: #ffe1dc; background: rgba(217,64,47,.16);
+    box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #d9402f; }
+  .rules-warn::before { content: "!"; position: absolute; left: 14px; top: 50%; margin-top: -14px; width: 28px; height: 28px; display: grid; place-items: center;
+    font: 700 18px/1 var(--font-display); color: #fff; background: #d9402f; box-shadow: inset 2px 2px 0 #ef7a6c, inset -2px -2px 0 #7d2118; }
+  .rules-warn b { color: #fff; }
+
+  .views .tab:disabled, :root[data-theme="amethyst"] .views .tab:disabled { opacity: .4; filter: grayscale(1); cursor: not-allowed; background: transparent; box-shadow: none; color: #9a8fb0; }
+  .views .tab:disabled::after { content: " \1F512"; font-size: .85em; }
+
+  /* ---------- Server-IP mit Kopier-Knopf ---------- */
+  .ipbar { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 14px; width: max-content; max-width: 100%; margin: 0 auto 18px;
+    padding: 10px 12px 10px 18px; background: rgba(20,12,37,.75); box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #3a2a63; }
+  .ip-label { font: 700 13px/1 var(--font-display); color: #c3b2e6; text-transform: uppercase; letter-spacing: .08em; }
+  .ip-val { font: 700 clamp(16px, 2.6vw, 20px)/1.2 var(--font-display); color: #fff; padding: 6px 12px; background: rgba(0,0,0,.45); box-shadow: inset 0 0 0 2px #2f2252;
+    user-select: all; overflow-wrap: anywhere; }
+  .ip-copy { color: #24073f; background: #c88cff; box-shadow: inset 2px 2px 0 #ecd6ff, inset -2px -2px 0 #7a3fc4, 0 0 0 2px #000; }
+  .ip-copy.done { background: #4fe08f; box-shadow: inset 2px 2px 0 #a6f5c8, inset -2px -2px 0 #1f8a4f, 0 0 0 2px #000; }
+  .ipbar.locked { opacity: .5; filter: grayscale(1); }
+  .ipbar.locked .ip-val { font-family: var(--font-body); font-weight: 400; font-size: 15px; color: #b7a5d9; user-select: none; }
+  .ipbar.locked .ip-copy { cursor: not-allowed; }
+  .ipbar.locked .ip-copy::after { content: " \1F512"; font-size: .85em; }
 </style>
 </head>
 <body>
@@ -582,8 +604,14 @@
     <p class="cd-date" id="cd-date"></p>
   </section>
 
+  <div class="ipbar" id="ipbar">
+    <span class="ip-label">Server-IP</span>
+    <code class="ip-val" id="ip-val">Ab dem Start sichtbar</code>
+    <button type="button" class="btn ip-copy" id="ip-copy">Kopieren</button>
+  </div>
+
   <div class="views" id="views" role="group" aria-label="Ansicht wählen">
-    <button type="button" class="tab" data-view="stats" aria-pressed="true">Statistiken</button>
+    <button type="button" class="tab" data-view="stats" aria-pressed="true" id="btn-stats">Statistiken</button>
     <button type="button" class="tab" data-view="rules" aria-pressed="false">Regeln</button>
     <button type="button" class="tab" data-view="modpack" aria-pressed="false">Modpack</button>
   </div>
@@ -591,11 +619,11 @@
   <!-- ================= Statistiken ================= -->
   <section id="view-stats">
     <div class="summary">
-      <div class="chip" style="--c: var(--gold)"><span>Spielzeit gesamt</span><strong id="sum-total">–</strong></div>
-      <div class="chip" style="--c: var(--gold)"><span>Ø Spielzeit</span><strong id="sum-play">–</strong></div>
-      <div class="chip" style="--c: var(--gold)"><span>Gesamt abgebaut</span><strong id="sum-mined">–</strong></div>
-      <div class="chip" style="--c: var(--gold)"><span>Gesamt platziert</span><strong id="sum-placed">–</strong></div>
-      <div class="chip" style="--c: var(--gold)"><span>Gesamt Diamanten</span><strong id="sum-dia">–</strong></div>
+      <div class="chip" style="--c: var(--gold)"><span>Gesamt<br>Spielzeit</span><strong id="sum-total">–</strong></div>
+      <div class="chip" style="--c: var(--gold)"><span>Durchschnitt<br>Spielzeit</span><strong id="sum-play">–</strong></div>
+      <div class="chip" style="--c: var(--gold)"><span>Gesamt<br>Abgebaut</span><strong id="sum-mined">–</strong></div>
+      <div class="chip" style="--c: var(--gold)"><span>Gesamt<br>Platziert</span><strong id="sum-placed">–</strong></div>
+      <div class="chip" style="--c: var(--gold)"><span>Gesamt<br>Diamanten</span><strong id="sum-dia">–</strong></div>
     </div>
     <div class="tabs" id="tabs" role="group" aria-label="Statistik wählen"></div>
     <ol class="list" id="list"></ol>
@@ -652,6 +680,7 @@
       <h2>Serverregeln</h2>
       <p class="lead">Wer auf dem Server spielt, hält sich an diese Regeln.</p>
       <ol class="rules" id="rules"></ol>
+      <p class="rules-warn"><b>Achtung:</b> Wer gegen eine dieser Regeln verstößt, kann für unbestimmte Zeit vom Server gebannt werden.</p>
     </div>
   </section>
 
@@ -689,6 +718,8 @@
 /* ============ EINSTELLUNGEN ============ */
 const CONFIG = {
   serverName: "Minecraft 2026",
+  // Adresse, mit der man sich in Minecraft verbindet. Wird erst ab dem Serverstart angezeigt.
+  serverIp: "DEINE-SERVER-IP",
   // Countdowns nacheinander (deutsche Uhrzeit). Nach "at" wird "fireworkHours" Stunden lang der Text "done" gezeigt
   // und beim Oeffnen der Seite gibt es ein Feuerwerk; danach kommt direkt der naechste Countdown.
   // phase "start" = Bild als Hintergrund, "end" = Sternenhimmel mit Drache und Shulker.
@@ -1520,7 +1551,45 @@ document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("clic
   history.replaceState(null, "", hashes[b.dataset.view] || "#" + current.id);
   showView(b.dataset.view);
 }));
-window.addEventListener("hashchange", applyHash);
+window.addEventListener("hashchange", () => { applyHash(); statsLock(); });
+
+/* ---------- Statistiken erst ab dem Serverstart ---------- */
+// Bis zum ersten Countdown ("Der Server startet in") ist der Reiter Statistiken ausgegraut und die Seite zeigt die Regeln.
+const STATS_FROM = (() => { const c = (CONFIG.countdowns || [])[0]; const t = c ? new Date(c.at) : null; return t && !isNaN(t) ? t.getTime() : 0; })();
+let statsWereLocked = false;
+function statsLock() {
+  const locked = Date.now() < STATS_FROM && (!DEMO || params.has("vorstart"));
+  // IP-Leiste
+  const bar = $("ipbar"), copy = $("ip-copy");
+  bar.classList.toggle("locked", locked);
+  copy.disabled = locked;
+  copy.title = locked ? "Die IP gibt es ab dem Serverstart" : "IP kopieren";
+  setText($("ip-val"), locked ? "Ab dem Start sichtbar" : (CONFIG.serverIp || "IP folgt"));
+  const btn = $("btn-stats");
+  btn.disabled = locked;
+  btn.title = locked ? "Die Statistiken gibt es ab dem Serverstart" : "";
+  if (locked) {
+    statsWereLocked = true;
+    if (!$("view-stats").hidden) { history.replaceState(null, "", "#regeln"); showView("rules"); }
+  } else if (statsWereLocked) {   // genau jetzt gestartet: Statistiken freigeben und anzeigen
+    statsWereLocked = false;
+    history.replaceState(null, "", "#" + current.id); showView("stats");
+  }
+}
+setInterval(statsLock, 1000);
+$("ip-copy").addEventListener("click", async () => {
+  const ip = CONFIG.serverIp || "", btn = $("ip-copy");
+  if (!ip || btn.disabled) return;
+  let ok = false;
+  try { await navigator.clipboard.writeText(ip); ok = true; } catch {
+    // Ersatz fuer aeltere Browser
+    const ta = document.createElement("textarea"); ta.value = ip; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select();
+    try { ok = document.execCommand("copy"); } catch { ok = false; } ta.remove();
+  }
+  btn.textContent = ok ? "Kopiert!" : "Bitte markieren"; btn.classList.toggle("done", ok);
+  if (!ok) { const r = document.createRange(); r.selectNodeContents($("ip-val")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+  setTimeout(() => { btn.textContent = "Kopieren"; btn.classList.remove("done"); }, 2000);
+});
 
 /* ---------- Regeln, Modpack, Countdown ---------- */
 (function renderPages() {
@@ -1659,6 +1728,7 @@ setInterval(() => {
 }, 1000);
 
 applyHash();
+statsLock();
 render();
 if (DEMO) startDemo(); else startLive();
 </script>
