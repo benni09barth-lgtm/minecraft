@@ -548,6 +548,11 @@
   #fw { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 50; image-rendering: pixelated; transition: opacity 1.2s; }
   .endcd.open .cd-kicker { font-size: clamp(24px, 5vw, 40px); animation: party 1.2s ease-in-out infinite alternate; }
   @keyframes party { from { text-shadow: 3px 3px 0 #000, 0 0 12px rgba(255,210,63,.4); } to { text-shadow: 3px 3px 0 #000, 0 0 28px rgba(255,210,63,.95); } }
+
+  .mp-guide { margin: 24px 0 4px; font: 700 16px/1.3 var(--font-display); color: var(--chalk); }
+  .steps a { color: var(--accent, #c88cff); }
+  .steps code { font-size: 13px; padding: 1px 5px; background: rgba(0,0,0,.35); color: var(--chalk); overflow-wrap: anywhere; }
+  .mp-note { margin: 14px 0 0; font-size: 14px; color: var(--chalk-dim); }
 </style>
 </head>
 <body>
@@ -661,11 +666,15 @@
           <a class="dl" id="mp-dl" href="#" download>Herunterladen</a>
         </div>
       </div>
+      <h3 class="mp-guide">So installierst du es mit Modrinth</h3>
       <ol class="steps">
-        <li><b>Herunterladen:</b> Klicke auf den Knopf und speichere die Datei.</li>
-        <li><b>Importieren:</b> Öffne deinen Launcher. CurseForge: „Erstellen", dann „Importieren". Modrinth App: „+", dann „Aus Datei". Prism Launcher: „Instanz hinzufügen", dann „Importieren".</li>
-        <li><b>Spielen:</b> Starte die neue Instanz und tritt dem Server bei.</li>
+        <li><b>Modrinth App installieren:</b> Lade sie kostenlos auf <a href="https://modrinth.com/app" target="_blank" rel="noopener">modrinth.com/app</a> herunter, installiere sie und melde dich mit deinem Microsoft-Konto an (wie im normalen Minecraft-Launcher).</li>
+        <li><b>Modpack herunterladen:</b> Klicke oben auf „Herunterladen". Du bekommst die Datei <code>Minecraft_2026_Mod_Pack_1.0.0.mrpack</code>.</li>
+        <li><b>Importieren:</b> Öffne die Modrinth App, klicke links auf das <b>+</b> („Instanz erstellen") und wähle <b>„Aus Datei importieren"</b>. Suche die heruntergeladene <code>.mrpack</code>-Datei aus. Du kannst die Datei auch einfach ins Fenster der Modrinth App ziehen.</li>
+        <li><b>Warten:</b> Die App lädt jetzt Minecraft 26.3, Fabric und alle Mods selbst herunter. Das dauert beim ersten Mal ein paar Minuten.</li>
+        <li><b>Spielen:</b> Klicke bei „Minecraft 2026 Mod Pack" auf <b>Spielen</b>, dann im Spiel auf „Mehrspieler" und gib die Serveradresse ein.</li>
       </ol>
+      <p class="mp-note">Tipp: Wenn das Spiel ruckelt, kannst du in den Videoeinstellungen die Shader ausschalten.</p>
     </div>
   </section>
 
@@ -699,12 +708,13 @@ const CONFIG = {
   ],
   // Modpack zum Herunterladen. url leer = Knopf "Download folgt".
   modpack: {
-    name: "Minecraft 2026 Modpack",
-    version: "1.0",
-    minecraft: "1.21.x",
+    name: "Minecraft 2026 Mod Pack",
+    version: "1.0.0",
+    minecraft: "26.3",
     loader: "Fabric",
-    size: "",
-    url: "",
+    size: "37 Mods und Shader, ca. 86 MB",
+    // Die .mrpack-Datei liegt im GitHub-Repository neben der index.html.
+    url: "https://benni09barth-lgtm.github.io/minecraft/Minecraft_2026_Mod_Pack_1.0.0.mrpack",
   },
   // Aufteilung: "podium", "tabelle", "karten" oder "" (klassische Liste)
   layout: "podium",
@@ -716,11 +726,11 @@ const CONFIG = {
   accessKey: "",
   // Gespeicherter Stand, den das Plugin zu GitHub hochlädt. Wird gezeigt, wenn die Seite den Server nicht live erreicht.
   // github: "NAME/REPOSITORY". Leer = automatisch aus der Adresse NAME.github.io/REPOSITORY.
-  github: "",
+  github: "benni09barth-lgtm/minecraft",
   dataBranch: "livestats-data",
   cacheFile: "data.json",
   // Wie oft die Seite den gespeicherten Stand neu holt (Sekunden).
-  cacheRefresh: 90,
+  cacheRefresh: 60,
   // Bild der Welt als Hintergrund der Karte. Leer = nur Raster.
   mapImage: "karte.png",
 };
