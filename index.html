@@ -563,18 +563,25 @@
   .views .tab:disabled, :root[data-theme="amethyst"] .views .tab:disabled { opacity: .4; filter: grayscale(1); cursor: not-allowed; background: transparent; box-shadow: none; color: #9a8fb0; }
   .views .tab:disabled::after { content: " \1F512"; font-size: .85em; }
 
-  /* ---------- Server-IP mit Kopier-Knopf ---------- */
-  .ipbar { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 14px; width: max-content; max-width: 100%; margin: 0 auto 18px;
-    padding: 10px 12px 10px 18px; background: rgba(20,12,37,.75); box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #3a2a63; }
-  .ip-label { font: 700 13px/1 var(--font-display); color: #c3b2e6; text-transform: uppercase; letter-spacing: .08em; }
-  .ip-val { font: 700 clamp(16px, 2.6vw, 20px)/1.2 var(--font-display); color: #fff; padding: 6px 12px; background: rgba(0,0,0,.45); box-shadow: inset 0 0 0 2px #2f2252;
-    user-select: all; overflow-wrap: anywhere; }
-  .ip-copy { color: #24073f; background: #c88cff; box-shadow: inset 2px 2px 0 #ecd6ff, inset -2px -2px 0 #7a3fc4, 0 0 0 2px #000; }
-  .ip-copy.done { background: #4fe08f; box-shadow: inset 2px 2px 0 #a6f5c8, inset -2px -2px 0 #1f8a4f, 0 0 0 2px #000; }
-  .ipbar.locked { opacity: .5; filter: grayscale(1); }
-  .ipbar.locked .ip-val { font-family: var(--font-body); font-weight: 400; font-size: 15px; color: #b7a5d9; user-select: none; }
-  .ipbar.locked .ip-copy { cursor: not-allowed; }
-  .ipbar.locked .ip-copy::after { content: " \1F512"; font-size: .85em; }
+
+  .admin { margin-top: 22px; padding-top: 14px; border-top: 2px solid #2f2252; font-size: 14px; color: var(--chalk-dim); }
+  .admin-link { background: none; border: 0; padding: 0; color: #9d8cc2; font: inherit; text-decoration: underline; cursor: pointer; }
+  .admin form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .admin form label { width: 100%; }
+  .admin input { font: inherit; color: var(--chalk); background: rgba(0,0,0,.4); border: 0; padding: 9px 12px; box-shadow: inset 0 0 0 2px #3a2a63; min-width: 0; flex: 1 1 200px; }
+  .admin #admin-state:empty { display: none; }
+  .admin #admin-state { color: #4fe08f; margin: 0 0 8px; }
+
+  /* ---------- Map vor der Freischaltung ---------- */
+  .views .tab.soft-lock { opacity: .55; filter: grayscale(.8); }
+  .views .tab.soft-lock::after { content: " \1F512"; font-size: .85em; }
+  #view-map:not(.locked) .map-locked { display: none; }
+  #view-map.locked > :not(.map-locked) { display: none !important; }
+  .map-locked { text-align: center; }
+  .map-locked .ml-icon { font-size: 40px; line-height: 1; margin-bottom: 8px; }
+  .map-locked .lead b { color: var(--chalk); }
+  .ml-digits { margin: 6px 0 4px; }
+  .ml-note { margin: 16px 0 0; font-size: 14px; color: var(--chalk-dim); }
 </style>
 </head>
 <body>
@@ -583,7 +590,7 @@
   <header class="top">
     <div>
       <h1 id="server-name">Minecraft 2026</h1>
-      <p class="sub">Live-Statistiken · Regeln · Modpack</p>
+      <p class="sub">Live-Statistiken · Map · Regeln · Modpack</p>
     </div>
     <div class="live">
       <span class="pill" id="status" data-state="off"><span class="dot"></span><span id="status-text">Verbinde …</span></span>
@@ -604,14 +611,9 @@
     <p class="cd-date" id="cd-date"></p>
   </section>
 
-  <div class="ipbar" id="ipbar">
-    <span class="ip-label">Server-IP</span>
-    <code class="ip-val" id="ip-val">Ab dem Start sichtbar</code>
-    <button type="button" class="btn ip-copy" id="ip-copy">Kopieren</button>
-  </div>
-
   <div class="views" id="views" role="group" aria-label="Ansicht wählen">
     <button type="button" class="tab" data-view="stats" aria-pressed="true" id="btn-stats">Statistiken</button>
+    <button type="button" class="tab" data-view="map" aria-pressed="false" id="btn-map">Map</button>
     <button type="button" class="tab" data-view="rules" aria-pressed="false">Regeln</button>
     <button type="button" class="tab" data-view="modpack" aria-pressed="false">Modpack</button>
   </div>
@@ -632,6 +634,18 @@
 
   <!-- ================= Karte ================= -->
   <section id="view-map" hidden>
+    <div class="page map-locked" id="map-locked">
+      <div class="ml-icon" aria-hidden="true">🔒</div>
+      <h2>Die Map ist noch geschlossen</h2>
+      <p class="lead">Ab <b id="ml-date"></b> kannst du hier deinen Bauplatz einzeichnen. Bis dahin sind es noch:</p>
+      <div class="cd-digits ml-digits">
+        <div><b id="ml-d">00</b><span>Tage</span></div>
+        <div><b id="ml-h">00</b><span>Std</span></div>
+        <div><b id="ml-m">00</b><span>Min</span></div>
+        <div><b id="ml-s">00</b><span>Sek</span></div>
+      </div>
+      <p class="ml-note">Die Map öffnet sich dann von selbst, du musst die Seite nicht neu laden.</p>
+    </div>
     <div class="maptools">
       <div class="group" role="group" aria-label="Zoom">
         <button type="button" class="tab" id="zoom-out" aria-label="Herauszoomen">−</button>
@@ -670,8 +684,20 @@
 
     <div class="panel" id="plot-info" hidden></div>
 
-    <h2 class="sec" id="plist-title">Alle Bauplätze</h2>
+    <h2 class="sec" id="plist-title">Alle Bauplätze auf der Map</h2>
     <ul class="plist" id="plist"></ul>
+
+    <div class="admin" id="admin-box">
+      <button type="button" class="admin-link" id="admin-open">Admin-Anmeldung</button>
+      <form id="admin-form" hidden>
+        <label for="admin-key">Admin-Schlüssel</label>
+        <input id="admin-key" type="password" autocomplete="current-password">
+        <button type="submit" class="btn">Anmelden</button>
+        <p class="error" id="admin-err" role="alert"></p>
+      </form>
+      <p id="admin-state"></p>
+      <button type="button" class="btn" id="admin-out" hidden>Admin abmelden</button>
+    </div>
   </section>
 
   <!-- ================= Regeln ================= -->
@@ -718,17 +744,17 @@
 /* ============ EINSTELLUNGEN ============ */
 const CONFIG = {
   serverName: "Minecraft 2026",
-  // Adresse, mit der man sich in Minecraft verbindet. Wird erst ab dem Serverstart angezeigt.
-  serverIp: "DEINE-SERVER-IP",
   // Countdowns nacheinander (deutsche Uhrzeit). Nach "at" wird "fireworkHours" Stunden lang der Text "done" gezeigt
   // und beim Oeffnen der Seite gibt es ein Feuerwerk; danach kommt direkt der naechste Countdown.
   // phase "start" = Bild als Hintergrund, "end" = Sternenhimmel mit Drache und Shulker.
   countdowns: [
-    { title: "Der Server startet in", done: "Der Server ist gestartet!", at: "2026-10-24T13:00", fireworkHours: 5, phase: "start" },
+    { title: "Der Server startet in", done: "Der Server ist gestartet!", at: "2026-10-24T14:30", fireworkHours: 5, phase: "start" },
     { title: "Das End öffnet in", done: "Das End ist offen!", at: "2026-10-30T19:00", fireworkHours: 0, phase: "end" },
   ],
   // Wie lange das Feuerwerk beim Oeffnen der Seite dauert (Sekunden).
   fireworkSeconds: 3,
+  // So viele Stunden vor dem Serverstart wird die Map freigeschaltet.
+  mapOpensHoursBefore: 48,
   // Serverregeln: "Titel: Erklaerung" je Zeile. (Beispiele, bitte ersetzen)
   rules: [
     "Kein Griefing: Zerstöre oder verändere nichts, was anderen gehört.",
@@ -1095,7 +1121,7 @@ const api = {
       onPlots(demoSnapshot());
       return;
     }
-    await this.post("/api/plots/delete", { id, token: ownerToken() });
+    await this.post("/api/plots/delete", adminKey() ? { id, admin: adminKey() } : { id, token: ownerToken() });
     refreshPlots();
   },
 };
@@ -1218,6 +1244,27 @@ function drawPreview(pts) {
 }
 
 /* ---------- Info, Liste ---------- */
+/* ---------- Admin-Zugang (Bauplaetze anderer loeschen) ---------- */
+function adminKey() { return keep.get("mc_admin") || ""; }
+function renderAdmin() {
+  const box = $("admin-box"), on = !!adminKey();
+  $("admin-state").textContent = on ? "Du bist als Admin angemeldet und kannst alle Bauplätze löschen." : "";
+  $("admin-form").hidden = on || !box.dataset.open;
+  $("admin-out").hidden = !on;
+  $("admin-open").hidden = on || !!box.dataset.open;
+}
+$("admin-open").addEventListener("click", () => { $("admin-box").dataset.open = "1"; renderAdmin(); $("admin-key").focus(); });
+$("admin-form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const k = $("admin-key").value.trim(); $("admin-err").textContent = "";
+  if (!k) return;
+  try {
+    if (!DEMO) await api.post("/api/plots/admin", { admin: k });
+    keep.set("mc_admin", k); $("admin-key").value = ""; renderAdmin(); renderInfo();
+  } catch (e) { $("admin-err").textContent = e.message; }
+});
+$("admin-out").addEventListener("click", () => { keep.set("mc_admin", ""); delete $("admin-box").dataset.open; renderAdmin(); renderInfo(); });
+
 function renderInfo() {
   const box = $("plot-info");
   box.replaceChildren();
@@ -1227,13 +1274,13 @@ function renderInfo() {
   const h = document.createElement("h3"); h.textContent = p.name;
   box.appendChild(h);
   if (p.note) { const n = document.createElement("p"); n.className = "note"; n.textContent = p.note; box.appendChild(n); }
-  if (isMine(p.id)) {
+  if (isMine(p.id) || adminKey()) {
     const a = document.createElement("div"); a.className = "actions";
     const del = document.createElement("button"); del.type = "button"; del.className = "btn danger"; del.textContent = "Bauplatz löschen";
     del.addEventListener("click", async () => {
       if (!confirm("Bauplatz von " + p.name + " wirklich löschen?")) return;
       del.disabled = true;
-      try { await api.remove(p.id); dropMine(p.id); MAP.sel = null; drawPlots(); renderInfo(); }
+      try { await api.remove(p.id); dropMine(p.id); MAP.sel = null; drawPlots(); renderInfo(); if (adminKey() && !isMine(p.id)) $("map-hint").textContent = "Bauplatz von " + p.name + " als Admin gelöscht."; }
       catch (e) { alert(e.message); del.disabled = false; }
     });
     a.appendChild(del); box.appendChild(a);
@@ -1540,6 +1587,7 @@ function showView(v) {
 }
 function applyHash() {
   const h = location.hash.slice(1);
+  if (h === "karte" || h === "map") { showView("map"); return; }
   if (h === "regeln") { showView("rules"); return; }
   if (h === "modpack") { showView("modpack"); return; }
   const s = STATS.find((x) => x.id === h);
@@ -1547,7 +1595,7 @@ function applyHash() {
   showView("stats");
 }
 document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => {
-  const hashes = { map: "#karte", rules: "#regeln", modpack: "#modpack" };
+  const hashes = { map: "#map", rules: "#regeln", modpack: "#modpack" };
   history.replaceState(null, "", hashes[b.dataset.view] || "#" + current.id);
   showView(b.dataset.view);
 }));
@@ -1559,12 +1607,6 @@ const STATS_FROM = (() => { const c = (CONFIG.countdowns || [])[0]; const t = c 
 let statsWereLocked = false;
 function statsLock() {
   const locked = Date.now() < STATS_FROM && (!DEMO || params.has("vorstart"));
-  // IP-Leiste
-  const bar = $("ipbar"), copy = $("ip-copy");
-  bar.classList.toggle("locked", locked);
-  copy.disabled = locked;
-  copy.title = locked ? "Die IP gibt es ab dem Serverstart" : "IP kopieren";
-  setText($("ip-val"), locked ? "Ab dem Start sichtbar" : (CONFIG.serverIp || "IP folgt"));
   const btn = $("btn-stats");
   btn.disabled = locked;
   btn.title = locked ? "Die Statistiken gibt es ab dem Serverstart" : "";
@@ -1577,19 +1619,26 @@ function statsLock() {
   }
 }
 setInterval(statsLock, 1000);
-$("ip-copy").addEventListener("click", async () => {
-  const ip = CONFIG.serverIp || "", btn = $("ip-copy");
-  if (!ip || btn.disabled) return;
-  let ok = false;
-  try { await navigator.clipboard.writeText(ip); ok = true; } catch {
-    // Ersatz fuer aeltere Browser
-    const ta = document.createElement("textarea"); ta.value = ip; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select();
-    try { ok = document.execCommand("copy"); } catch { ok = false; } ta.remove();
-  }
-  btn.textContent = ok ? "Kopiert!" : "Bitte markieren"; btn.classList.toggle("done", ok);
-  if (!ok) { const r = document.createRange(); r.selectNodeContents($("ip-val")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
-  setTimeout(() => { btn.textContent = "Kopieren"; btn.classList.remove("done"); }, 2000);
-});
+
+/* ---------- Map erst kurz vor dem Serverstart ---------- */
+// Reiter bleibt anklickbar, zeigt bis zur Freischaltung aber nur einen Hinweis mit Countdown.
+const MAP_FROM = STATS_FROM ? STATS_FROM - (CONFIG.mapOpensHoursBefore ?? 48) * 3600000 : 0;
+function mapLock() {
+  const ms = MAP_FROM - Date.now();
+  const locked = ms > 0 && (!DEMO || params.has("vorstart"));
+  const btn = $("btn-map");
+  btn.classList.toggle("soft-lock", locked);
+  btn.title = locked ? "Die Map öffnet " + (CONFIG.mapOpensHoursBefore ?? 48) + " Stunden vor dem Serverstart" : "";
+  const view = $("view-map"), was = view.classList.contains("locked");
+  view.classList.toggle("locked", locked);
+  if (locked) {
+    $("ml-date").textContent = new Date(MAP_FROM).toLocaleString("de-DE", { weekday: "long", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) + " Uhr";
+    const sec = Math.floor(ms / 1000), pad = (n) => String(n).padStart(2, "0");
+    $("ml-d").textContent = pad(Math.floor(sec / 86400)); $("ml-h").textContent = pad(Math.floor(sec / 3600) % 24);
+    $("ml-m").textContent = pad(Math.floor(sec / 60) % 60); $("ml-s").textContent = pad(sec % 60);
+  } else if (was && !view.hidden && MAP.ready) { drawGrid(); drawPlots(); }   // gerade freigeschaltet
+}
+setInterval(mapLock, 1000);
 
 /* ---------- Regeln, Modpack, Countdown ---------- */
 (function renderPages() {
@@ -1719,6 +1768,7 @@ function startFireworks(durationMs) {
 })();
 
 buildTabs();
+renderAdmin();
 syncTabs();
 setInterval(() => {
   if (!lastUpdate || mode === "cache") return;
@@ -1729,6 +1779,7 @@ setInterval(() => {
 
 applyHash();
 statsLock();
+mapLock();
 render();
 if (DEMO) startDemo(); else startLive();
 </script>
