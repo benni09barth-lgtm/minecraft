@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Live-Statistiken</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -564,6 +565,11 @@
   .views .tab:disabled::after { content: " \1F512"; font-size: .85em; }
 
 
+  .disclaimer { width: 100%; margin: 10px 0 0; font-size: 12px; letter-spacing: .02em; color: #a898cc; text-align: center; }
+  .ld-disc { position: relative; margin-top: 26px; max-width: 520px; color: rgba(255,255,255,.75); text-shadow: 1px 1px 0 #000; }
+  footer .admin { width: 100%; margin-top: 6px; }
+  .admin-badge { display: inline-block; margin-left: 8px; padding: 2px 8px; font-size: 12px; letter-spacing: .08em; color: #24073f; background: #ffd23f; box-shadow: 0 0 0 2px #000; vertical-align: middle; }
+  .admin-badge[hidden] { display: none; }
   .admin { margin-top: 22px; padding-top: 14px; border-top: 2px solid #2f2252; font-size: 14px; color: var(--chalk-dim); }
   .admin-link { background: none; border: 0; padding: 0; color: #9d8cc2; font: inherit; text-decoration: underline; cursor: pointer; }
   .admin form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -648,13 +654,14 @@
     <button type="button" data-go="rules"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABsUlEQVR42n2SMUgbURjHfznSt3QoB+YQLEoKAXHoUAwuWlQcJGlDB7GjlIY6iUNx7eYkKLEgBATRSaVovabaodDYBG2wdJRCBkk2iXBk6CK9PIfznneXi//p7r3v/3v/73svQgeZWV16/zPrViSsLtrJmM5lALBrDWedU3kfSJkvD2LS/jcjzawuuw1DdhuGNLO6vD5PycuDmAwmi3jNQy+jdE2k6IkfAfB89DUAP4s7ANSLg1jVMypf/qskmpfmNQsh+HWyj2E8Zmr6PUIIekd/oyeSlMpN5dHc09O5DF/nTWUOkxCCb8unLO5NstCvybYE78wHPkPm1ZzT3uePHWvULbjT9mpl6Slaa5tPu9cdU/mu8fiDzZsf+bv+WtvYtQZPRtbU2sbYbDugVG6SzsWIjw9x/Pahz2xVzyhtxVRKq6qFJ7jYLBCfeYF94fRre4quvh+qbz2RpF6s+AFLf1sRVi05iwMJm4meSN6+hQr5VcvxBGdw/qcFFAAUqKsvhV1rUC9Wbvf98r3rhX5Njgw/YuCZFoDeqVRuqtPbAC4EwAW5APf1ec2hgCDIVdDo6gZOFLSF3vFOlAAAAABJRU5ErkJggg==" alt="">Regeln</button>
     <button type="button" data-go="modpack"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAABLElEQVR42n2SsUsCYRjGfyfHUcuFctDg0iAiN7Qoro2Bthm0yP0RBw3dEg25VXNLoFuDNDmGUw1R0WJwjsWRg16kYaDB2+Rxn5rP9n68v/d53u/7NOaUdD2J15/nNY1VSrqexNWRscwPWQqUBr6UBr7Upz3pyFi27lpiORVZCdSnvQioT3tSGvgLYGJ+gKNvUtBNbNYp6CYAdi6j9OhJ15Pw7JRy2KWVylIOuwAcmBsAvNw+Y6RNjL19LJB+o6kpTq/8KABA4mO0sE4EtVJZyvdtBbgefgEwCYZqvJnDYfiOnctwdNNWGoxCGoDfxyA60wAspyLFi1qUP65JMMRIm3xfXtFvNDUl3tvo/zc8KeaVOvoillORtfwu29Ud5TKOH54UFwWagcuc4gDAH1W0lNmLrDUqAAAAAElFTkSuQmCC" alt="">Modpack</button>
   </div>
+  <p class="disclaimer ld-disc">Kein offizielles Minecraft-Produkt. Nicht von Mojang oder Microsoft genehmigt oder mit ihnen verbunden.</p>
 </section>
 <div class="wrap">
 
   <header class="top">
     <div>
       <h1 id="server-name">Minecraft 2026</h1>
-      <p class="sub">Live-Statistiken · Map · Regeln · Modpack</p>
+      <p class="sub">Live-Statistiken · Map · Regeln · Modpack<span class="admin-badge" id="admin-badge" hidden>ADMIN</span></p>
     </div>
     <div class="live">
       <span class="pill" id="status" data-state="off"><span class="dot"></span><span id="status-text">Verbinde …</span></span>
@@ -751,17 +758,6 @@
     <h2 class="sec" id="plist-title">Alle Bauplätze auf der Map</h2>
     <ul class="plist" id="plist"></ul>
 
-    <div class="admin" id="admin-box">
-      <button type="button" class="admin-link" id="admin-open">Admin-Anmeldung</button>
-      <form id="admin-form" hidden>
-        <label for="admin-key">Admin-Schlüssel</label>
-        <input id="admin-key" type="password" autocomplete="current-password">
-        <button type="submit" class="btn">Anmelden</button>
-        <p class="error" id="admin-err" role="alert"></p>
-      </form>
-      <p id="admin-state"></p>
-      <button type="button" class="btn" id="admin-out" hidden>Admin abmelden</button>
-    </div>
   </section>
 
   <!-- ================= Regeln ================= -->
@@ -800,6 +796,18 @@
   <footer>
     <span>Aktualisiert: <span id="age">–</span></span>
     <span id="hint"></span>
+    <div class="admin" id="admin-box">
+      <button type="button" class="admin-link" id="admin-open">Admin-Anmeldung</button>
+      <form id="admin-form" hidden>
+        <label for="admin-key">Admin-Schlüssel</label>
+        <input id="admin-key" type="password" autocomplete="current-password">
+        <button type="submit" class="btn">Anmelden</button>
+        <p class="error" id="admin-err" role="alert"></p>
+      </form>
+      <p id="admin-state"></p>
+      <button type="button" class="btn" id="admin-out" hidden>Admin abmelden</button>
+    </div>
+    <p class="disclaimer">Kein offizielles Minecraft-Produkt. Nicht von Mojang oder Microsoft genehmigt oder mit ihnen verbunden. Minecraft ist eine Marke von Mojang AB.</p>
   </footer>
   <div class="sr" role="status" aria-live="polite" id="live-region"></div>
 </div>
@@ -1163,7 +1171,7 @@ const api = {
     } catch { throw new Error("Keine Verbindung zum Server."); }
     let data = {};
     try { data = await res.json(); } catch { /* leer */ }
-    if (!res.ok) throw new Error(data.error || `Das hat nicht geklappt (Fehler ${res.status}).`);
+    if (!res.ok) throw Object.assign(new Error(data.error || `Das hat nicht geklappt (Fehler ${res.status}).`), { status: res.status });
     return data;
   },
   async create(plot) {
@@ -1312,9 +1320,32 @@ function drawPreview(pts) {
 /* ---------- Info, Liste ---------- */
 /* ---------- Admin-Zugang (Bauplaetze anderer loeschen) ---------- */
 function adminKey() { return keep.get("mc_admin") || ""; }
+function isAdmin() { return !!adminKey(); }
+// Ohne Verbindung zum Server (z. B. auf der GitHub-Seite) wird der Schluessel mit dem Pruefwert aus data.json verglichen.
+// Der Schluessel selbst steht dort nicht drin, nur ein langsam berechneter Fingerabdruck (PBKDF2).
+async function checkAdminOffline(k) {
+  const data = await fetchCache();
+  const a = data && data.admin;
+  if (!a || !a.salt || !a.hash) throw new Error("Der Schlüssel kann gerade nicht geprüft werden. Ist im Plugin ein admin-key eingetragen und der Server war seitdem einmal an?");
+  if (!window.crypto || !crypto.subtle) throw new Error("Dieser Browser kann den Schlüssel hier nicht prüfen.");
+  const hex = (h) => new Uint8Array(h.match(/../g).map((x) => parseInt(x, 16)));
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(k), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: hex(a.salt), iterations: a.iter || 150000 }, base, 256));
+  const got = [...bits].map((b) => b.toString(16).padStart(2, "0")).join("");
+  if (got !== a.hash.toLowerCase()) throw new Error("Falscher Admin-Schlüssel.");
+}
+async function checkAdmin(k) {
+  if (DEMO) return;
+  try { await api.post("/api/plots/admin", { admin: k }); }
+  catch (e) { if (e.status === 429 || (e.status === 403 && /Admin/.test(e.message))) throw e; await checkAdminOffline(k); }   // kein Server da: offline pruefen
+}
+function adminChanged() {
+  $("admin-badge").hidden = !isAdmin();
+  statsLock(); mapLock(); if (typeof landingTick === "function") landingTick();
+}
 function renderAdmin() {
   const box = $("admin-box"), on = !!adminKey();
-  $("admin-state").textContent = on ? "Du bist als Admin angemeldet und kannst alle Bauplätze löschen." : "";
+  $("admin-state").textContent = on ? "Du bist als Admin angemeldet: Du siehst alle Seiten schon vor dem Start und kannst alle Bauplätze löschen." : "";
   $("admin-form").hidden = on || !box.dataset.open;
   $("admin-out").hidden = !on;
   $("admin-open").hidden = on || !!box.dataset.open;
@@ -1325,11 +1356,13 @@ $("admin-form").addEventListener("submit", async (ev) => {
   const k = $("admin-key").value.trim(); $("admin-err").textContent = "";
   if (!k) return;
   try {
-    if (!DEMO) await api.post("/api/plots/admin", { admin: k });
-    keep.set("mc_admin", k); $("admin-key").value = ""; renderAdmin(); renderInfo();
+    $("admin-err").textContent = "Wird geprüft …";
+    await checkAdmin(k);
+    $("admin-err").textContent = "";
+    keep.set("mc_admin", k); $("admin-key").value = ""; renderAdmin(); renderInfo(); adminChanged();
   } catch (e) { $("admin-err").textContent = e.message; }
 });
-$("admin-out").addEventListener("click", () => { keep.set("mc_admin", ""); delete $("admin-box").dataset.open; renderAdmin(); renderInfo(); });
+$("admin-out").addEventListener("click", () => { keep.set("mc_admin", ""); delete $("admin-box").dataset.open; renderAdmin(); renderInfo(); adminChanged(); });
 
 function renderInfo() {
   const box = $("plot-info");
@@ -1672,7 +1705,7 @@ window.addEventListener("hashchange", () => { applyHash(); statsLock(); });
 const STATS_FROM = (() => { const c = (CONFIG.countdowns || [])[0]; const t = c ? new Date(c.at) : null; return t && !isNaN(t) ? t.getTime() : 0; })();
 let statsWereLocked = false;
 function statsLock() {
-  const locked = Date.now() < STATS_FROM && (!DEMO || params.has("vorstart"));
+  const locked = Date.now() < STATS_FROM && (!DEMO || params.has("vorstart")) && !isAdmin();
   const btn = $("btn-stats");
   btn.disabled = locked;
   btn.title = locked ? "Die Statistiken gibt es ab dem Serverstart" : "";
@@ -1691,7 +1724,7 @@ setInterval(statsLock, 1000);
 const MAP_FROM = STATS_FROM ? STATS_FROM - (CONFIG.mapOpensHoursBefore ?? 48) * 3600000 : 0;
 function mapLock() {
   const ms = MAP_FROM - Date.now();
-  const locked = ms > 0 && (!DEMO || params.has("vorstart"));
+  const locked = ms > 0 && (!DEMO || params.has("vorstart")) && !isAdmin();
   const btn = $("btn-map");
   btn.classList.toggle("soft-lock", locked);
   btn.title = locked ? "Die Map öffnet " + (CONFIG.mapOpensHoursBefore ?? 48) + " Stunden vor dem Serverstart" : "";
@@ -1835,6 +1868,7 @@ function startFireworks(durationMs) {
 
 buildTabs();
 renderAdmin();
+$("admin-badge").hidden = !isAdmin();
 syncTabs();
 setInterval(() => {
   if (!lastUpdate || mode === "cache") return;
