@@ -565,6 +565,13 @@
   .views .tab:disabled::after { content: " \1F512"; font-size: .85em; }
 
 
+  .madeby { width: 100%; margin: 14px 0 0; text-align: center; font-size: 14px; line-height: 1.5; color: #d9c8f5; }
+  .madeby p { margin: 0; }
+  .madeby .mb-who { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-weight: 700; letter-spacing: .06em; color: #f1e2ff; margin-bottom: 2px; }
+  .madeby .mb-who b { color: #c88cff; }
+  .madeby::after { content: ""; display: block; width: 120px; height: 4px; margin: 14px auto 0; background: repeating-linear-gradient(90deg, #c88cff 0 8px, transparent 8px 12px); opacity: .6; }
+  .ld-made { position: relative; margin-top: 28px; max-width: 560px; color: #fff; text-shadow: 1px 1px 0 #000; }
+  .ld-made .mb-who { color: #fff; }
   .disclaimer { width: 100%; margin: 10px 0 0; font-size: 12px; letter-spacing: .02em; color: #a898cc; text-align: center; }
   .ld-disc { position: relative; margin-top: 26px; max-width: 520px; color: rgba(255,255,255,.75); text-shadow: 1px 1px 0 #000; }
   footer .admin { width: 100%; margin-top: 6px; }
@@ -654,6 +661,7 @@
     <button type="button" data-go="rules"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABsUlEQVR42n2SMUgbURjHfznSt3QoB+YQLEoKAXHoUAwuWlQcJGlDB7GjlIY6iUNx7eYkKLEgBATRSaVovabaodDYBG2wdJRCBkk2iXBk6CK9PIfznneXi//p7r3v/3v/73svQgeZWV16/zPrViSsLtrJmM5lALBrDWedU3kfSJkvD2LS/jcjzawuuw1DdhuGNLO6vD5PycuDmAwmi3jNQy+jdE2k6IkfAfB89DUAP4s7ANSLg1jVMypf/qskmpfmNQsh+HWyj2E8Zmr6PUIIekd/oyeSlMpN5dHc09O5DF/nTWUOkxCCb8unLO5NstCvybYE78wHPkPm1ZzT3uePHWvULbjT9mpl6Slaa5tPu9cdU/mu8fiDzZsf+bv+WtvYtQZPRtbU2sbYbDugVG6SzsWIjw9x/Pahz2xVzyhtxVRKq6qFJ7jYLBCfeYF94fRre4quvh+qbz2RpF6s+AFLf1sRVi05iwMJm4meSN6+hQr5VcvxBGdw/qcFFAAUqKsvhV1rUC9Wbvf98r3rhX5Njgw/YuCZFoDeqVRuqtPbAC4EwAW5APf1ec2hgCDIVdDo6gZOFLSF3vFOlAAAAABJRU5ErkJggg==" alt="">Regeln</button>
     <button type="button" data-go="modpack"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAABLElEQVR42n2SsUsCYRjGfyfHUcuFctDg0iAiN7Qoro2Bthm0yP0RBw3dEg25VXNLoFuDNDmGUw1R0WJwjsWRg16kYaDB2+Rxn5rP9n68v/d53u/7NOaUdD2J15/nNY1VSrqexNWRscwPWQqUBr6UBr7Upz3pyFi27lpiORVZCdSnvQioT3tSGvgLYGJ+gKNvUtBNbNYp6CYAdi6j9OhJ15Pw7JRy2KWVylIOuwAcmBsAvNw+Y6RNjL19LJB+o6kpTq/8KABA4mO0sE4EtVJZyvdtBbgefgEwCYZqvJnDYfiOnctwdNNWGoxCGoDfxyA60wAspyLFi1qUP65JMMRIm3xfXtFvNDUl3tvo/zc8KeaVOvoillORtfwu29Ud5TKOH54UFwWagcuc4gDAH1W0lNmLrDUqAAAAAElFTkSuQmCC" alt="">Modpack</button>
   </div>
+  <div class="madeby ld-made"><p class="mb-who">Website gecraftet von <b>Benni</b></p><p>Viel Spaß beim Spielen!</p><p>Und vergesst nicht zu schlafen: Die Phantome warten schon!</p></div>
   <p class="disclaimer ld-disc">Kein offizielles Minecraft-Produkt. Nicht von Mojang oder Microsoft genehmigt oder mit ihnen verbunden.</p>
 </section>
 <div class="wrap">
@@ -807,6 +815,7 @@
       <p id="admin-state"></p>
       <button type="button" class="btn" id="admin-out" hidden>Admin abmelden</button>
     </div>
+    <div class="madeby"><p class="mb-who">Website gecraftet von <b>Benni</b></p><p>Viel Spaß beim Spielen!</p><p>Und vergesst nicht zu schlafen: Die Phantome warten schon!</p></div>
     <p class="disclaimer">Kein offizielles Minecraft-Produkt. Nicht von Mojang oder Microsoft genehmigt oder mit ihnen verbunden. Minecraft ist eine Marke von Mojang AB.</p>
   </footer>
   <div class="sr" role="status" aria-live="polite" id="live-region"></div>
@@ -835,6 +844,7 @@ const CONFIG = {
     "Freundlich sein: Keine Beleidigungen im Chat.",
     "Voice-Mod ist Pflicht: Simple Voice Chat muss installiert und eingeschaltet sein (ist im Modpack enthalten).",
     "In der Nähe vom Spawn bauen: Baut eure Häuser und Basen in der Nähe vom Spawn, damit alle nah beieinander wohnen.",
+    "Fremde Bauplätze respektieren: Wo jemand anderes seinen Bauplatz auf der Map eingezeichnet hat, darfst du nicht bauen.",
   ],
   // Modpack zum Herunterladen. url leer = Knopf "Download folgt".
   modpack: {
