@@ -387,6 +387,13 @@
     :root[data-layout="podium"] .list { gap: 8px; }
   }
 
+  /* ================= Tageszaehler ================= */
+  .dayc { display: flex; align-items: center; gap: 8px; padding-left: 14px; box-shadow: inset 2px 0 0 #3a2a63; }
+  .dayc[hidden] { display: none; }
+  .dayc span { font: 700 12px ui-monospace, "Cascadia Mono", Consolas, monospace; letter-spacing: .14em; color: #c9b6ec; }
+  .dayc b { font: 700 22px ui-monospace, "Cascadia Mono", Consolas, monospace; color: #2a1450; background: #e8e3a8; min-width: 30px; padding: 4px 6px; text-align: center;
+    box-shadow: inset 0 -4px 0 #c9c27e, inset 0 0 0 2px #fff6c4, 0 0 0 2px #000; }
+
   /* ================= Countdown bis zum End ================= */
   .endcd {
     position: relative; overflow: hidden; margin: 0 0 22px; padding: 26px 20px 24px; text-align: center; color: #f3efc4;
@@ -540,8 +547,8 @@
   }
 
   @media (max-width: 520px) {
-    :root[data-theme="amethyst"] .views { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); }
-    :root[data-theme="amethyst"] .views .tab { padding: 12px 6px; font-size: 13px; }
+    :root[data-theme="amethyst"] .views { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); }
+    :root[data-theme="amethyst"] .views .tab { padding: 12px 2px; font-size: 12px; }
     :root[data-theme="amethyst"] .sub { font-size: 12px; letter-spacing: .08em; }
   }
 
@@ -673,6 +680,7 @@
     </div>
     <div class="live">
       <span class="pill" id="status" data-state="off"><span class="dot"></span><span id="status-text">Verbinde …</span></span>
+      <div class="dayc" id="dayc" hidden title="Ingame-Tage seit dem Serverstart"><span>TAG</span><b id="dayc-n">1</b></div>
       <div class="count" aria-label="Spieler online"><span id="online">0</span><small>/<span id="max">0</span></small></div>
     </div>
   </header>
@@ -1102,6 +1110,7 @@ function setStatus(state, text) {
 
 function onData(data) {
   lastPlayers = data.players || [];
+  if (data.world) setSky(data.world);
   let newSkin = false;
   for (const p of lastPlayers) {
     const k = p.name.toLowerCase();
@@ -1659,7 +1668,10 @@ function startDemo() {
   }));
   let t = 0;
   ps[3].online = false; ps[4].online = false;
-  const push = () => onData({ online: 3, max: 20, players: ps.map((p) => ({ ...p })) });
+  // Demo-Welt: echte Minecraft-Geschwindigkeit (20 Minuten pro Tag), mit ?mczeit=18000 auf eine feste Uhrzeit setzbar
+  const fixT = params.has("mczeit") ? Number(params.get("mczeit")) : null;
+  const demoWorld = () => ({ time: fixT != null ? fixT : Math.floor(Date.now() / 50) % 24000, day: 12, phase: 2 });
+  const push = () => onData({ time: fixT != null ? 0 : Date.now(), online: 3, max: 20, world: demoWorld(), players: ps.map((p) => ({ ...p })) });
   setInterval(() => {
     t++;
     ps.forEach((p) => {
@@ -1769,6 +1781,14 @@ setInterval(mapLock, 1000);
   const dl = $("mp-dl");
   if (mp.url) { dl.href = mp.url; } else { dl.textContent = "Download folgt"; dl.setAttribute("aria-disabled", "true"); dl.removeAttribute("href"); }
 })();
+
+/* ---------- Tageszaehler ---------- */
+// Das Plugin schickt world.day = Ingame-Tag seit dem Serverstart (0 = noch nicht gestartet).
+function setSky(world) {
+  const day = world && world.day > 0 ? world.day : 0;
+  $("dayc").hidden = !day;
+  if (day) $("dayc-n").textContent = day.toLocaleString("de-DE");
+}
 
 /* ---------- Pixel-Feuerwerk ---------- */
 // Kleine Rakete (Pixelbild). Mit CONFIG.rocketImage kann ein eigenes Bild verwendet werden.
