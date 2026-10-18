@@ -868,8 +868,8 @@ const CONFIG = {
   layout: "podium",
   // Farben: "smaragd", "redstone", "amethyst" oder "" (Nachtblau)
   theme: "amethyst",
-  // Adresse des Plugins. Leer lassen = automatisch (die Adresse, unter der diese Seite geöffnet wurde, sonst http://localhost:8765).
-  apiBase: "",
+  // Adresse des Plugins über den Cloudflare-Tunnel (wird auf craften.pro und GitHub Pages benutzt). Leer = nur die Seite direkt vom Server ist live.
+  apiBase: "https://live.craften.pro",
   // Nur nötig, wenn in der config.yml ein access-key gesetzt ist.
   accessKey: "",
   // Gespeicherter Stand, den das Plugin zu GitHub hochlädt. Wird gezeigt, wenn die Seite den Server nicht live erreicht.
@@ -1178,7 +1178,10 @@ const demoSnapshot = () => ({ size: 5000, plots: demoPlots.map((p) => ({ ...p })
 
 const api = {
   url(path) {
-    const base = CONFIG.apiBase || (location.protocol.startsWith("http") ? location.origin : "http://localhost:8765");
+    // Auf craften.pro / GitHub Pages ueber den Cloudflare-Tunnel; auf der Seite direkt vom Server (localhost, IP, live.craften.pro) ohne Umweg.
+    let ext = "";
+    try { ext = CONFIG.apiBase && location.protocol === "https:" && new URL(CONFIG.apiBase).host !== location.host ? CONFIG.apiBase : ""; } catch { /* ungueltig */ }
+    const base = ext || (location.protocol.startsWith("http") ? location.origin : CONFIG.apiBase || "http://localhost:8765");
     return base.replace(/\/$/, "") + path + (CONFIG.accessKey ? "?key=" + encodeURIComponent(CONFIG.accessKey) : "");
   },
   // Eine Angabe pro Zeile (schluessel=wert), als text/plain, damit der Browser keine Vorabfrage (CORS-Preflight) braucht.
@@ -1645,7 +1648,7 @@ async function loadCache() {
   if (data.plots) onPlots(data.plots);
   setStatus("cache", (fresh ? "Stand " : "Server offline · Stand ") + when);
   $("age").textContent = when + " Uhr (aktualisiert sich alle " + Math.max(60, CONFIG.cacheRefresh) + " s)";
-  $("map-hint").textContent = "Hier siehst du die Bauplätze. Neue einzeichnen kannst du über den Link direkt vom Server.";
+  $("map-hint").textContent = "Der Server ist gerade nicht erreichbar. Neue Bauplätze kannst du wieder einzeichnen, sobald er läuft.";
 }
 
 function startDemo() {
