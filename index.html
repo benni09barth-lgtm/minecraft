@@ -394,6 +394,65 @@
   .dayc b { font: 700 22px ui-monospace, "Cascadia Mono", Consolas, monospace; color: #2a1450; background: #e8e3a8; min-width: 30px; padding: 4px 6px; text-align: center;
     box-shadow: inset 0 -4px 0 #c9c27e, inset 0 0 0 2px #fff6c4, 0 0 0 2px #000; }
 
+  /* ================= Diamanten-Rennen ================= */
+  .race { position: relative; margin: -8px 0 22px; padding: 18px 20px 20px; background: linear-gradient(180deg, #17304a, #141c3a 55%, #1a1233);
+    box-shadow: 0 0 0 3px #000, inset 0 0 0 3px rgba(90,230,240,.55), 0 0 36px rgba(80,220,240,.25), 0 14px 30px rgba(0,0,0,.4); color: #eafcff; }
+  .race[hidden] { display: none; }
+  .race-head { display: flex; align-items: center; gap: 14px; }
+  .race-ico { width: 44px; height: 44px; image-rendering: pixelated; filter: drop-shadow(0 0 10px rgba(90,230,240,.7)); flex: none; }
+  .race-kicker { margin: 0; font: 700 13px ui-monospace, "Cascadia Mono", Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: #8ff3f8; }
+  .race-state { margin: 2px 0 0; font: 700 clamp(18px, 3.4vw, 24px) var(--font-display, ui-monospace, monospace); color: #fff; text-shadow: 2px 2px 0 rgba(0,0,0,.5); }
+  .race-timer { margin-left: auto; text-align: right; }
+  .race-timer[hidden] { display: none; }
+  .race-timer span { display: block; font: 700 11px ui-monospace, Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; color: #8ff3f8; }
+  .race-timer b { white-space: nowrap; display: inline-block; margin-top: 4px; font: 700 20px ui-monospace, "Cascadia Mono", Consolas, monospace; color: #10303a; background: #b8f6f8; padding: 4px 10px;
+    box-shadow: inset 0 -4px 0 #6fd6db, inset 0 0 0 2px #e6feff, 0 0 0 3px #000; }
+  .race-hint { margin: 12px 0 14px; font-size: 14px; color: #b9dfe6; }
+  .race-top { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; }
+  .race-top li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px 12px; background: rgba(8,20,32,.55);
+    box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #24506a; text-align: center; min-width: 0; }
+  .race-top li.r1 { order: 2; padding-top: 22px; box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #ffd23f, 0 0 22px rgba(255,210,63,.3); }
+  .race-top li.r2 { order: 1; } .race-top li.r3 { order: 3; }
+  .race-top .pl { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font: 700 13px ui-monospace, Consolas, monospace; color: #10303a; background: #b8f6f8; padding: 2px 8px; box-shadow: 0 0 0 2px #000; }
+  .race-top li.r1 .pl { background: #ffd23f; color: #3a2a00; }
+  .race-top .hd { width: 48px; height: 48px; image-rendering: pixelated; background: #24506a; box-shadow: 0 0 0 2px #000; }
+  .race-top li.r1 .hd { width: 60px; height: 60px; }
+  .race-top .hd svg, .race-top .hd img, .race-list .hd svg, .race-list .hd img { width: 100%; height: 100%; display: block; }
+  .race-top .nm { font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .race-top .ct, .race-list .ct { font: 700 18px ui-monospace, "Cascadia Mono", Consolas, monospace; color: #8ff3f8; text-shadow: 0 0 10px rgba(90,230,240,.5); }
+  .race-top li.r1 .ct { font-size: 22px; }
+  .race-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; counter-reset: rr 3; }
+  .race-list li { counter-increment: rr; display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: rgba(8,20,32,.45); box-shadow: 0 0 0 2px #000, inset 3px 0 0 #3fb7c4; }
+  .race-list li::before { content: counter(rr); width: 22px; font: 700 14px ui-monospace, Consolas, monospace; color: #8ff3f8; }
+  .race-list .hd { width: 26px; height: 26px; image-rendering: pixelated; flex: none; }
+  .race-list .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .race-list .ct { font-size: 15px; }
+  /* Rennbahn: eine Bahn pro Spieler, der Kopf steht so weit vorne, wie er Diamanten hat */
+  .track { position: relative; margin-top: 4px; --name: 128px; --pad: 34px; }
+  .track-scale { position: relative; height: 18px; margin-left: calc(var(--name) + 10px); margin-right: var(--pad); }
+  .track-scale span { position: absolute; bottom: 2px; transform: translateX(-50%); font: 700 11px ui-monospace, Consolas, monospace; color: #6fb9c4; }
+  .lanes { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .lane { display: flex; align-items: center; gap: 10px; height: 44px; }
+  .lane .who { width: var(--name); flex: none; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .lane .pos { width: 22px; flex: none; font: 700 14px ui-monospace, Consolas, monospace; color: #8ff3f8; text-align: right; }
+  .lane.p1 .pos { color: #ffd23f; }
+  .lane .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 14px; }
+  .lane .road { position: relative; flex: 1; height: 100%; margin-right: var(--pad);
+    background: repeating-linear-gradient(90deg, rgba(143,243,248,.3) 0 10px, transparent 10px 18px) 0 50% / 100% 2px no-repeat; }
+  .lane .trail { position: absolute; left: 0; top: 50%; height: 6px; margin-top: -3px; background: linear-gradient(90deg, rgba(90,230,240,0), rgba(90,230,240,.55)); transition: width .8s ease; }
+  .lane.p1 .trail { background: linear-gradient(90deg, rgba(255,210,63,0), rgba(255,210,63,.6)); }
+  .lane .rider { position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; transition: left .8s ease; }
+  .lane .rider .hd { width: 32px; height: 32px; image-rendering: pixelated; background: #24506a; box-shadow: 0 0 0 2px #000; }
+  .lane.p1 .rider .hd { box-shadow: 0 0 0 2px #000, 0 0 0 4px #ffd23f, 0 0 14px rgba(255,210,63,.6); }
+  .lane .rider .hd svg, .lane .rider .hd img { width: 100%; height: 100%; display: block; }
+  .lane .rider .ct { position: absolute; left: calc(100% + 6px); font: 700 15px ui-monospace, "Cascadia Mono", Consolas, monospace; color: #8ff3f8; text-shadow: 0 0 8px rgba(90,230,240,.5), 1px 1px 0 #000; white-space: nowrap; }
+  .lane.p1 .rider .ct { color: #ffe17a; }
+  .lane.flip .rider .ct { left: auto; right: calc(100% + 6px); }
+  @media (max-width: 520px) { .track { --name: 92px; --pad: 22px; } .lane { height: 38px; gap: 6px; } .lane .nm { font-size: 12px; } .lane .rider .hd { width: 26px; height: 26px; } .lane .rider .ct { font-size: 13px; } }
+  .race-empty { margin: 4px 0 0; color: #b9dfe6; font-style: italic; }
+  .race.done { background: linear-gradient(180deg, #2a2440, #1a1233); }
+  @media (max-width: 520px) { .race { padding: 14px 12px 16px; } .race-head { flex-wrap: wrap; } .race-timer { margin-left: 0; width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; } .race-timer b { font-size: 16px; margin-top: 0; } .race-top .hd { width: 40px; height: 40px; } .race-top li.r1 .hd { width: 50px; height: 50px; } .race-top .ct { font-size: 15px; } }
+
   /* ================= Countdown bis zum End ================= */
   .endcd {
     position: relative; overflow: hidden; margin: 0 0 22px; padding: 26px 20px 24px; text-align: center; color: #f3efc4;
@@ -698,6 +757,27 @@
     <p class="cd-date" id="cd-date"></p>
   </section>
 
+  <!-- ================= Diamanten-Rennen (erscheint erst, wenn es begonnen hat) ================= -->
+  <section class="race" id="race" hidden aria-live="polite">
+    <div class="race-head">
+      <img class="race-ico" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAABLElEQVR42n2SsUsCYRjGfyfHUcuFctDg0iAiN7Qoro2Bthm0yP0RBw3dEg25VXNLoFuDNDmGUw1R0WJwjsWRg16kYaDB2+Rxn5rP9n68v/d53u/7NOaUdD2J15/nNY1VSrqexNWRscwPWQqUBr6UBr7Upz3pyFi27lpiORVZCdSnvQioT3tSGvgLYGJ+gKNvUtBNbNYp6CYAdi6j9OhJ15Pw7JRy2KWVylIOuwAcmBsAvNw+Y6RNjL19LJB+o6kpTq/8KABA4mO0sE4EtVJZyvdtBbgefgEwCYZqvJnDYfiOnctwdNNWGoxCGoDfxyA60wAspyLFi1qUP65JMMRIm3xfXtFvNDUl3tvo/zc8KeaVOvoillORtfwu29Ud5TKOH54UFwWagcuc4gDAH1W0lNmLrDUqAAAAAElFTkSuQmCC" alt="">
+      <div>
+        <p class="race-kicker">Diamanten-Rennen</p>
+        <p class="race-state" id="race-state"></p>
+      </div>
+      <div class="race-timer" id="race-timer" hidden>
+        <span>endet in</span>
+        <b id="race-left">–</b>
+      </div>
+    </div>
+    <p class="race-hint" id="race-hint">Wer gibt die meisten Diamanten in der Abgabe-Truhe ab? Nur abgegebene Diamanten zählen, ein Diamantblock zählt 9.</p>
+    <div class="track" id="race-track">
+      <div class="track-scale" id="race-scale" aria-hidden="true"></div>
+      <ol class="lanes" id="race-lanes"></ol>
+    </div>
+    <p class="race-empty" id="race-empty" hidden>Noch hat niemand Diamanten abgegeben. Sei der Erste!</p>
+  </section>
+
   <div class="views" id="views" role="group" aria-label="Ansicht wählen">
     <button type="button" class="tab" data-view="stats" aria-pressed="true" id="btn-stats">Statistiken</button>
     <button type="button" class="tab" data-view="map" aria-pressed="false" id="btn-map">Map</button>
@@ -749,8 +829,8 @@
       <p id="form-summary"></p>
       <div class="form-grid two">
         <div class="field">
-          <label for="f-name">Dein Minecraft-Name</label>
-          <input id="f-name" name="name" maxlength="16" autocomplete="off" spellcheck="false" list="names" required>
+          <label for="f-name" id="f-name-label">Dein Minecraft-Name</label>
+          <input id="f-name" name="name" maxlength="24" autocomplete="off" spellcheck="false" list="names" required>
           <datalist id="names"></datalist>
         </div>
         <div class="field">
@@ -1112,6 +1192,7 @@ function setStatus(state, text) {
 function onData(data) {
   lastPlayers = data.players || [];
   if (data.world) setSky(data.world);
+  renderRace(data.race);
   let newSkin = false;
   for (const p of lastPlayers) {
     const k = p.name.toLowerCase();
@@ -1205,6 +1286,7 @@ const api = {
       return { id };
     }
     const r = await this.post("/api/plots", {
+      ...(adminKey() ? { admin: adminKey() } : {}),
       token: ownerToken(), name: plot.name, note: plot.note, color: plot.color,
       pts: plot.pts.map((p) => p[0] + "," + p[1]).join(";"),
     });
@@ -1328,7 +1410,7 @@ function drawPlots() {
     const box = { class: "phead", x: p.c.x - hs / 2, y: p.c.z - hs - fs * 0.1, width: hs, height: hs };
     const skin = p.skin || skinByName.get(p.name.toLowerCase());
     if (skin) skinHead(skin, box, gPlots);
-    else svgEl("image", { ...box, href: headUrl(p.name, 32), "aria-hidden": "true" }, gPlots);
+    else if (/^[A-Za-z0-9_.]{2,16}$/.test(p.name)) svgEl("image", { ...box, href: headUrl(p.name, 32), "aria-hidden": "true" }, gPlots);
     const t = svgEl("text", { class: "plabel", x: p.c.x, y: p.c.z + fs * 0.95, "font-size": fs, "stroke-width": fs / 4 }, gPlots);
     t.textContent = p.name;
   }
@@ -1540,7 +1622,8 @@ COLORS.forEach((c, i) => {
 function openForm(list) {
   pendingDraw = { pts: list };
   drawPreview(list);
-  $("form-summary").textContent = "Wem gehört diese Fläche?";
+  $("form-summary").textContent = adminKey() ? "Wem gehört diese Fläche? Als Admin kannst du auch einen freien Namen wählen." : "Wem gehört diese Fläche?";
+  $("f-name-label").textContent = adminKey() ? "Name (Minecraft-Name oder frei, z. B. Spawn oder Marktplatz)" : "Dein Minecraft-Name";
   $("f-name").value = keep.get("mc_name") || "";
   $("f-note").value = "";
   const saved = keep.get("mc_color");
@@ -1564,8 +1647,9 @@ form.addEventListener("submit", async (ev) => {
   ev.preventDefault();
   if (!pendingDraw) return;
   const name = $("f-name").value.trim();
-  if (!/^[A-Za-z0-9_.]{2,16}$/.test(name)) {
-    $("form-error").textContent = "Der Minecraft-Name muss 2 bis 16 Zeichen haben (Buchstaben, Zahlen, _).";
+  const freeOk = adminKey() && /^[\p{L}\p{N}][\p{L}\p{N} _.,'!&()+-]{0,23}$/u.test(name);
+  if (!/^[A-Za-z0-9_.]{2,16}$/.test(name) && !freeOk) {
+    $("form-error").textContent = adminKey() ? "Der Name darf 1 bis 24 Zeichen haben (Buchstaben, Zahlen, Leerzeichen)." : "Der Minecraft-Name muss 2 bis 16 Zeichen haben (Buchstaben, Zahlen, _).";
     $("f-name").focus();
     return;
   }
@@ -1577,7 +1661,7 @@ form.addEventListener("submit", async (ev) => {
   try {
     const res = await api.create(plot);
     addMine(res.id);
-    keep.set("mc_name", name);
+    if (!adminKey()) keep.set("mc_name", name);
     keep.set("mc_color", plot.color);
     closeForm();
     select(res.id);
@@ -1675,7 +1759,10 @@ function startDemo() {
   // Demo-Welt: echte Minecraft-Geschwindigkeit (20 Minuten pro Tag), mit ?mczeit=18000 auf eine feste Uhrzeit setzbar
   const fixT = params.has("mczeit") ? Number(params.get("mczeit")) : null;
   const demoWorld = () => ({ time: fixT != null ? fixT : Math.floor(Date.now() / 50) % 24000, day: 12, phase: 2 });
-  const push = () => onData({ time: fixT != null ? 0 : Date.now(), online: 3, max: 20, world: demoWorld(), players: ps.map((p) => ({ ...p })) });
+  // Demo-Rennen: mit ?demo sichtbar, ?rennenvorbei zeigt das Ergebnis
+  const demoRace = { start: Date.now() - 3600000, end: params.has("rennenvorbei") ? Date.now() - 1000 : Date.now() + 2 * 86400000 + 3 * 3600000 + 754000, running: !params.has("rennenvorbei"),
+    scores: names.map((name, i) => ({ name, uuid: uuids[i], count: [41, 63, 18, 9, 27][i] })).sort((a, b) => b.count - a.count) };
+  const push = () => onData({ time: fixT != null ? 0 : Date.now(), online: 3, max: 20, world: demoWorld(), race: params.has("ohnerennen") ? null : demoRace, players: ps.map((p) => ({ ...p })) });
   setInterval(() => {
     t++;
     ps.forEach((p) => {
@@ -1793,6 +1880,75 @@ function setSky(world) {
   $("dayc").hidden = !day;
   if (day) $("dayc-n").textContent = day.toLocaleString("de-DE");
 }
+
+/* ---------- Diamanten-Rennen ---------- */
+// Das Plugin schickt "race" erst, wenn das Rennen begonnen hat. Vorher bleibt der Kasten unsichtbar.
+const RACE = { data: null };
+function raceHead(p, size) {
+  const box = document.createElement("div"); box.className = "hd";
+  const skin = skinByName.get(String(p.name).toLowerCase());
+  if (skin) { skinHead(skin, {}, box); return box; }
+  const img = document.createElement("img"); img.alt = ""; img.src = headUrl(p.name, size);
+  img.onerror = () => { img.onerror = null; img.src = `https://mc-heads.net/avatar/${p.uuid}/${size}`; };
+  box.appendChild(img); return box;
+}
+function renderRace(race) {
+  RACE.data = race || null;
+  const box = $("race");
+  if (!race) { box.hidden = true; return; }
+  box.hidden = false;
+  const list = (race.scores || []).filter((s) => s.count > 0);
+  box.classList.toggle("done", !race.running);
+  const key = JSON.stringify(list) + race.running;
+  if (renderRace.key !== key) {
+    renderRace.key = key;
+    const lanes = $("race-lanes"), scale = $("race-scale");
+    lanes.replaceChildren(); scale.replaceChildren();
+    const shown = list.slice(0, 10);
+    // Skala bis knapp ueber den Fuehrenden (runde Zahl), damit die Abstaende zwischen den Spielern echt sind
+    const lead = shown.length ? shown[0].count : 0;
+    const nice = (v) => { if (v <= 10) return 10; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= v) return m * p; return 10 * p; };
+    const goal = nice(lead * 1.05);
+    $("race-track").hidden = !shown.length;
+    for (let i = 0; i <= 4; i++) { const t = document.createElement("span"); t.style.left = (i * 25) + "%"; t.textContent = fmtNum(goal * i / 4); scale.appendChild(t); }
+    shown.forEach((s, i) => {
+      const li = document.createElement("li"); li.className = "lane" + (i === 0 ? " p1" : "");
+      const who = document.createElement("div"); who.className = "who";
+      const pos = document.createElement("span"); pos.className = "pos"; pos.textContent = (i + 1) + ".";
+      const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = s.name;
+      who.append(pos, nm);
+      const road = document.createElement("div"); road.className = "road";
+      const pct = Math.max(2, Math.min(100, s.count / goal * 100));
+      const trail = document.createElement("div"); trail.className = "trail"; trail.style.width = pct + "%";
+      const rider = document.createElement("div"); rider.className = "rider"; rider.style.left = pct + "%";
+      const ct = document.createElement("span"); ct.className = "ct"; ct.textContent = fmtNum(s.count);
+      rider.append(raceHead(s, 32), ct);
+      if (pct > 82) li.classList.add("flip");
+      road.append(trail, rider); li.append(who, road); lanes.appendChild(li);
+    });
+    $("race-empty").hidden = list.length > 0;
+  }
+  raceTick();
+}
+function raceTick() {
+  const race = RACE.data; if (!race) return;
+  const now = Date.now(), ended = !race.running || (race.end && now >= race.end);
+  const list = (race.scores || []).filter((s) => s.count > 0);
+  if (ended) {
+    $("race-state").textContent = list.length ? "Vorbei! Gewonnen hat " + list[0].name : "Vorbei!";
+    $("race-hint").textContent = list.length ? list[0].name + " hat " + fmtNum(list[0].count) + " Diamanten abgegeben." : "Es wurden keine Diamanten abgegeben.";
+    $("race-timer").hidden = true;
+    return;
+  }
+  $("race-state").textContent = list.length ? "Es führt " + list[0].name : "Das Rennen läuft!";
+  $("race-hint").textContent = "Wer gibt die meisten Diamanten in der Abgabe-Truhe ab? Nur abgegebene Diamanten zählen, ein Diamantblock zählt 9.";
+  $("race-timer").hidden = !race.end;
+  if (race.end) {
+    const sec = Math.max(0, Math.floor((race.end - now) / 1000)), d = Math.floor(sec / 86400), pad = (n) => String(n).padStart(2, "0");
+    $("race-left").textContent = (d ? d + " T " : "") + pad(Math.floor(sec / 3600) % 24) + ":" + pad(Math.floor(sec / 60) % 60) + ":" + pad(sec % 60);
+  }
+}
+setInterval(raceTick, 1000);
 
 /* ---------- Pixel-Feuerwerk ---------- */
 // Kleine Rakete (Pixelbild). Mit CONFIG.rocketImage kann ein eigenes Bild verwendet werden.
