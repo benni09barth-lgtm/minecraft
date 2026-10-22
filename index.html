@@ -449,6 +449,13 @@
   .lane.p1 .rider .ct { color: #ffe17a; }
   .lane.flip .rider .ct { left: auto; right: calc(100% + 6px); }
   @media (max-width: 520px) { .track { --name: 92px; --pad: 22px; } .lane { height: 38px; gap: 6px; } .lane .nm { font-size: 12px; } .lane .rider .hd { width: 26px; height: 26px; } .lane .rider .ct { font-size: 13px; } }
+  .race-admin { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; padding-top: 12px; border-top: 2px dashed rgba(143,243,248,.25); }
+  .race-admin[hidden] { display: none; }
+  .race-badge { font: 700 12px ui-monospace, Consolas, monospace; letter-spacing: .08em; color: #24073f; background: #ffd23f; padding: 3px 8px; box-shadow: 0 0 0 2px #000; }
+  .race-badge[hidden] { display: none; }
+  .race-admin .error:empty { display: none; }
+  .race-admin .error { width: 100%; margin: 0; }
+  .race.preview { opacity: .92; outline: 3px dashed rgba(255,210,63,.55); outline-offset: 4px; }
   .race-empty { margin: 4px 0 0; color: #b9dfe6; font-style: italic; }
   .race.done { background: linear-gradient(180deg, #2a2440, #1a1233); }
   @media (max-width: 520px) { .race { padding: 14px 12px 16px; } .race-head { flex-wrap: wrap; } .race-timer { margin-left: 0; width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; } .race-timer b { font-size: 16px; margin-top: 0; } .race-top .hd { width: 40px; height: 40px; } .race-top li.r1 .hd { width: 50px; height: 50px; } .race-top .ct { font-size: 15px; } }
@@ -766,7 +773,7 @@
         <p class="race-state" id="race-state"></p>
       </div>
       <div class="race-timer" id="race-timer" hidden>
-        <span>endet in</span>
+        <span id="race-timer-label">endet in</span>
         <b id="race-left">–</b>
       </div>
     </div>
@@ -776,6 +783,11 @@
       <ol class="lanes" id="race-lanes"></ol>
     </div>
     <p class="race-empty" id="race-empty" hidden>Noch hat niemand Diamanten abgegeben. Sei der Erste!</p>
+    <div class="race-admin" id="race-admin" hidden>
+      <span class="race-badge" id="race-badge">Nur für Admins sichtbar</span>
+      <button type="button" class="btn danger" id="race-del">Rennen löschen</button>
+      <p class="error" id="race-err" role="alert"></p>
+    </div>
   </section>
 
   <div class="views" id="views" role="group" aria-label="Ansicht wählen">
@@ -1447,6 +1459,7 @@ async function checkAdmin(k) {
 function adminChanged() {
   $("admin-badge").hidden = !isAdmin();
   statsLock(); mapLock(); if (typeof landingTick === "function") landingTick();
+  renderRace(RACE.data);
 }
 function renderAdmin() {
   const box = $("admin-box"), on = !!adminKey();
@@ -1760,9 +1773,9 @@ function startDemo() {
   const fixT = params.has("mczeit") ? Number(params.get("mczeit")) : null;
   const demoWorld = () => ({ time: fixT != null ? fixT : Math.floor(Date.now() / 50) % 24000, day: 12, phase: 2 });
   // Demo-Rennen: mit ?demo sichtbar, ?rennenvorbei zeigt das Ergebnis
-  const demoRace = { start: Date.now() - 3600000, end: params.has("rennenvorbei") ? Date.now() - 1000 : Date.now() + 2 * 86400000 + 3 * 3600000 + 754000, running: !params.has("rennenvorbei"),
+  const demoRace = { start: params.has("rennengeplant") ? Date.now() + 26 * 3600000 : Date.now() - 3600000, started: !params.has("rennengeplant"), chest: true, end: params.has("rennenvorbei") ? Date.now() - 1000 : Date.now() + 2 * 86400000 + 3 * 3600000 + 754000, running: !params.has("rennenvorbei"),
     scores: names.map((name, i) => ({ name, uuid: uuids[i], count: [41, 63, 18, 9, 27][i] })).sort((a, b) => b.count - a.count) };
-  const push = () => onData({ time: fixT != null ? 0 : Date.now(), online: 3, max: 20, world: demoWorld(), race: params.has("ohnerennen") ? null : demoRace, players: ps.map((p) => ({ ...p })) });
+  const push = () => onData({ time: fixT != null ? 0 : Date.now(), online: 3, max: 20, world: demoWorld(), race: params.has("ohnerennen") || window.__raceDeleted ? null : demoRace, players: ps.map((p) => ({ ...p })) });
   setInterval(() => {
     t++;
     ps.forEach((p) => {
@@ -1894,12 +1907,18 @@ function raceHead(p, size) {
 }
 function renderRace(race) {
   RACE.data = race || null;
-  const box = $("race");
-  if (!race) { box.hidden = true; return; }
+  const box = $("race"), admin = isAdmin();
+  const started = race ? race.started !== false : false;
+  // Vor dem Start sieht man nichts, ausser man ist als Admin angemeldet
+  if (!race ? !admin : !started && !admin) { box.hidden = true; return; }
   box.hidden = false;
-  const list = (race.scores || []).filter((s) => s.count > 0);
-  box.classList.toggle("done", !race.running);
-  const key = JSON.stringify(list) + race.running;
+  box.classList.toggle("preview", !race || !started);
+  $("race-admin").hidden = !admin;
+  $("race-badge").hidden = !!race && started;
+  $("race-del").hidden = !race;
+  const list = race ? (race.scores || []).filter((s) => s.count > 0) : [];
+  box.classList.toggle("done", !!race && started && !race.running);
+  const key = JSON.stringify(list) + (race ? race.running : "-");
   if (renderRace.key !== key) {
     renderRace.key = key;
     const lanes = $("race-lanes"), scale = $("race-scale");
@@ -1926,29 +1945,57 @@ function renderRace(race) {
       if (pct > 82) li.classList.add("flip");
       road.append(trail, rider); li.append(who, road); lanes.appendChild(li);
     });
-    $("race-empty").hidden = list.length > 0;
   }
   raceTick();
 }
+const RACE_HINT = "Wer gibt die meisten Diamanten in der Abgabe-Truhe ab? Nur abgegebene Diamanten zählen, ein Diamantblock zählt 9.";
+function raceClock(ms) {
+  const sec = Math.max(0, Math.floor(ms / 1000)), d = Math.floor(sec / 86400), pad = (n) => String(n).padStart(2, "0");
+  return (d ? d + " T " : "") + pad(Math.floor(sec / 3600) % 24) + ":" + pad(Math.floor(sec / 60) % 60) + ":" + pad(sec % 60);
+}
 function raceTick() {
-  const race = RACE.data; if (!race) return;
-  const now = Date.now(), ended = !race.running || (race.end && now >= race.end);
+  if ($("race").hidden) return;
+  const race = RACE.data, now = Date.now();
+  const when = (ms) => new Date(ms).toLocaleString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) + " Uhr";
+  if (!race) {   // nur Admins: noch nichts geplant
+    $("race-state").textContent = "Noch kein Rennen geplant";
+    $("race-hint").textContent = "Lege im Spiel mit /diarennen kiste die Abgabe-Truhe fest und starte das Rennen mit /diarennen start jetzt 3d (oder z. B. /diarennen start 25.10. 18:00 2d).";
+    $("race-timer").hidden = true; $("race-empty").hidden = true;
+    return;
+  }
   const list = (race.scores || []).filter((s) => s.count > 0);
+  const started = race.started !== false && now >= race.start;
+  if (!started) {   // nur Admins: geplant, aber noch nicht begonnen
+    $("race-state").textContent = "Startet " + when(race.start);
+    $("race-hint").textContent = (race.chest === false ? "Achtung: Noch keine Abgabe-Truhe festgelegt (/diarennen kiste). " : "") + "Ab dem Start sehen es alle auf der Website. " + RACE_HINT;
+    $("race-timer-label").textContent = "beginnt in";
+    $("race-timer").hidden = false; $("race-left").textContent = raceClock(race.start - now);
+    $("race-empty").hidden = true;
+    return;
+  }
+  $("race-empty").hidden = list.length > 0;
+  const ended = !race.running || (race.end && now >= race.end);
   if (ended) {
     $("race-state").textContent = list.length ? "Vorbei! Gewonnen hat " + list[0].name : "Vorbei!";
     $("race-hint").textContent = list.length ? list[0].name + " hat " + fmtNum(list[0].count) + " Diamanten abgegeben." : "Es wurden keine Diamanten abgegeben.";
-    $("race-timer").hidden = true;
+    $("race-timer").hidden = true; $("race-empty").hidden = true;
     return;
   }
   $("race-state").textContent = list.length ? "Es führt " + list[0].name : "Das Rennen läuft!";
-  $("race-hint").textContent = "Wer gibt die meisten Diamanten in der Abgabe-Truhe ab? Nur abgegebene Diamanten zählen, ein Diamantblock zählt 9.";
+  $("race-hint").textContent = RACE_HINT;
+  $("race-timer-label").textContent = "endet in";
   $("race-timer").hidden = !race.end;
-  if (race.end) {
-    const sec = Math.max(0, Math.floor((race.end - now) / 1000)), d = Math.floor(sec / 86400), pad = (n) => String(n).padStart(2, "0");
-    $("race-left").textContent = (d ? d + " T " : "") + pad(Math.floor(sec / 3600) % 24) + ":" + pad(Math.floor(sec / 60) % 60) + ":" + pad(sec % 60);
-  }
+  if (race.end) $("race-left").textContent = raceClock(race.end - now);
 }
-setInterval(raceTick, 1000);
+setInterval(() => { if (RACE.data && RACE.data.started === false && Date.now() >= RACE.data.start) RACE.data.started = true; raceTick(); }, 1000);
+$("race-del").addEventListener("click", async () => {
+  if (!confirm("Diamanten-Rennen wirklich löschen? Alle abgegebenen Diamanten-Punkte und die Zeiten werden gelöscht. Die Abgabe-Truhe bleibt.")) return;
+  $("race-err").textContent = "";
+  try {
+    if (!DEMO) await api.post("/api/race", { admin: adminKey(), action: "reset" }); else window.__raceDeleted = true;
+    renderRace.key = ""; renderRace(null);
+  } catch (e) { $("race-err").textContent = e.message; }
+});
 
 /* ---------- Pixel-Feuerwerk ---------- */
 // Kleine Rakete (Pixelbild). Mit CONFIG.rocketImage kann ein eigenes Bild verwendet werden.
