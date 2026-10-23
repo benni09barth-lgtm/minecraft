@@ -129,8 +129,28 @@
     background: #15181b; padding: 8px;
     box-shadow: inset 2px 2px 0 #0f1114, inset -2px -2px 0 #4a525a, 0 0 0 2px #0f1114;
   }
-  #map { display: block; width: min(100%, 78vh); aspect-ratio: 1; margin: 0 auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+  #map { display: block; width: 100%; height: min(74vh, 860px); margin: 0 auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+  @media (max-width: 700px) { #map { height: 64vh; } }
   #map { cursor: crosshair; }
+  #map.move { cursor: grab; }
+  #map.move.grabbing { cursor: grabbing; }
+  .mapframe { position: relative; }
+  .mapzoom { position: absolute; top: 18px; right: 18px; display: grid; gap: 6px; z-index: 1; }
+  .mapzoom button { width: 42px; height: 42px; padding: 0; border: 0; cursor: pointer; font: 700 22px/1 ui-monospace, Consolas, monospace; color: #f1e2ff;
+    background: rgba(20,12,37,.88); box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #3a2a63; }
+  .mapzoom button:hover { background: #3a2a63; }
+  .maptools #map-fs { margin-left: auto; }
+  /* Karte breiter als der Rest der Seite (bis 1240 px) */
+  .mapwrap { position: relative; width: min(1240px, calc(100vw - 32px)); left: 50%; transform: translateX(-50%); }
+  /* Vollbild: die Karte fuellt den ganzen Bildschirm, Formular und Details schweben darueber */
+  .mapwrap.fs { position: fixed; inset: 0; width: auto; left: 0; transform: none; z-index: 1000; display: flex; flex-direction: column; padding: 10px; background: #140c25; }
+  .mapwrap.fs .maptools { margin-bottom: 8px; }
+  .mapwrap.fs .mapframe { flex: 1; min-height: 0; display: flex; }
+  .mapwrap.fs #map { height: 100%; }
+  .mapwrap.fs .maphint { margin: 6px 0 0; font-size: 13px; }
+  .mapwrap.fs #plot-form, .mapwrap.fs #plot-info { position: absolute; left: 22px; bottom: 56px; z-index: 2; margin: 0; width: min(460px, calc(100% - 44px)); max-height: 62vh; overflow: auto;
+    box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #5a3f96, 0 14px 40px rgba(0,0,0,.6); }
+  body.map-fs { overflow: hidden; }
   #map .land { fill: #26302a; stroke: #5a636b; stroke-width: 2; vector-effect: non-scaling-stroke; }
   #map .gl { fill: none; stroke: rgba(235, 230, 214, .11); stroke-width: 1; vector-effect: non-scaling-stroke; }
   #map .ga { fill: none; stroke: rgba(235, 230, 214, .35); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
@@ -825,15 +845,23 @@
       </div>
       <p class="ml-note">Die Map öffnet sich dann von selbst, du musst die Seite nicht neu laden.</p>
     </div>
+    <div class="mapwrap" id="mapwrap">
     <div class="maptools">
-      <div class="group" role="group" aria-label="Zoom">
-        <button type="button" class="tab" id="zoom-out" aria-label="Herauszoomen">−</button>
-        <button type="button" class="tab" id="zoom-in" aria-label="Hineinzoomen">+</button>
-        <button type="button" class="tab" id="zoom-fit">Ganze Karte</button>
+      <div class="group" role="group" aria-label="Was die Maus macht">
+        <button type="button" class="tab" id="mode-move" aria-pressed="true">Bewegen</button>
+        <button type="button" class="tab" id="mode-draw" aria-pressed="false">Bauplatz zeichnen</button>
       </div>
+      <button type="button" class="tab" id="map-fs" aria-pressed="false">Vollbild</button>
     </div>
 
-    <div class="mapframe"><svg id="map" role="img" aria-label="Karte der Bauplätze"></svg></div>
+    <div class="mapframe">
+      <svg id="map" class="move" role="img" aria-label="Karte der Bauplätze"></svg>
+      <div class="mapzoom" role="group" aria-label="Zoom">
+        <button type="button" id="zoom-in" aria-label="Hineinzoomen" title="Hineinzoomen">+</button>
+        <button type="button" id="zoom-out" aria-label="Herauszoomen" title="Herauszoomen">−</button>
+        <button type="button" id="zoom-fit" aria-label="Ganze Karte" title="Ganze Karte">⤢</button>
+      </div>
+    </div>
     <p class="maphint" id="map-hint"></p>
 
     <form class="panel" id="plot-form" hidden novalidate>
@@ -862,6 +890,7 @@
     </form>
 
     <div class="panel" id="plot-info" hidden></div>
+    </div>
 
     <h2 class="sec" id="plist-title">Alle Bauplätze auf der Map</h2>
     <ul class="plist" id="plist"></ul>
@@ -1204,6 +1233,7 @@ function setStatus(state, text) {
 function onData(data) {
   lastPlayers = data.players || [];
   if (data.world) setSky(data.world);
+  if (data.endOpen && window.setEndOpen) window.setEndOpen(data.endOpen);
   renderRace(data.race);
   let newSkin = false;
   for (const p of lastPlayers) {
@@ -1238,7 +1268,7 @@ const gPlots = svgEl("g", {}, mapEl);
 const gPrev = svgEl("g", {}, mapEl);
 
 const COLORS = ["#3fbf74", "#d9402f", "#e8b63a", "#5b86ea", "#a665e0", "#ee7d2e", "#3cc7d6", "#e868a8"];
-const HINT = "Zeichne mit gedrückter Maustaste den Umriss deines Bauplatzes, wie mit einem Stift. Das Mausrad zoomt, mit der rechten Maustaste verschiebst du die Karte. Ein Klick auf einen Bauplatz zeigt Details.";
+const HINT = "Ziehen verschiebt die Karte, Mausrad oder + / − zoomt, ein Klick auf einen Bauplatz zeigt Details. Für deinen Bauplatz oben auf „Bauplatz zeichnen“ klicken und den Umriss mit gedrückter Maustaste malen.";
 
 /* ---------- Eigene Bauplätze (nur in diesem Browser) ---------- */
 function ownerToken() {
@@ -1342,30 +1372,41 @@ function centerOf(pts) {
 const ptsAttr = (pts) => pts.map((p) => p[0] + "," + p[1]).join(" ");
 
 /* ---------- Ansicht (Zoom und Position) ---------- */
+// Seitenverhaeltnis der Karte auf dem Bildschirm (Hoehe / Breite), die Karte ist nicht mehr quadratisch
+function mapAspect() { const r = mapEl.getBoundingClientRect(); return r.width > 0 && r.height > 0 ? r.height / r.width : 1; }
 function setView(vx, vz, vw) {
-  const half = MAP.size / 2;
-  vw = Math.min(MAP.size * 1.5, Math.max(120, vw));
+  const half = MAP.size / 2, ar = mapAspect();
+  vw = Math.min(MAP.size * 1.5 / Math.min(1, ar), Math.max(120, vw));
+  const vh = vw * ar;
   vx = Math.min(half - vw * 0.2, Math.max(-half - vw * 0.8, vx));
-  vz = Math.min(half - vw * 0.2, Math.max(-half - vw * 0.8, vz));
-  MAP.vx = vx; MAP.vz = vz; MAP.vw = vw;
-  mapEl.setAttribute("viewBox", `${vx} ${vz} ${vw} ${vw}`);
+  vz = Math.min(half - vh * 0.2, Math.max(-half - vh * 0.8, vz));
+  MAP.vx = vx; MAP.vz = vz; MAP.vw = vw; MAP.vh = vh;
+  mapEl.setAttribute("viewBox", `${vx} ${vz} ${vw} ${vh}`);
   drawGrid();
   drawPlots();
 }
 function fitView() {
-  const vw = MAP.size * 1.06;
-  setView(-vw / 2, -vw / 2, vw);
+  MAP.fitOk = mapEl.getBoundingClientRect().width > 0;   // nur gueltig, wenn die Karte dabei sichtbar war
+  const ar = mapAspect(), vw = Math.max(MAP.size * 1.06, MAP.size * 1.06 / ar);
+  setView(-vw / 2, -vw * ar / 2, vw);
+}
+// Nach Groessenaenderung (Vollbild, Fenster): gleiche Mitte und gleicher Zoom
+function keepView() {
+  if (!MAP.ready) return;
+  const cx = MAP.vx + MAP.vw / 2, cz = MAP.vz + (MAP.vh || MAP.vw) / 2;
+  setView(cx - MAP.vw / 2, cz - MAP.vw * mapAspect() / 2, MAP.vw);
 }
 function worldAt(clientX, clientY) {
   const r = mapEl.getBoundingClientRect();
-  return { x: MAP.vx + ((clientX - r.left) / r.width) * MAP.vw, z: MAP.vz + ((clientY - r.top) / r.height) * MAP.vw };
+  return { x: MAP.vx + ((clientX - r.left) / r.width) * MAP.vw, z: MAP.vz + ((clientY - r.top) / r.height) * (MAP.vh || MAP.vw) };
 }
 // Zoomt so, dass der Weltpunkt w unter der Bildschirmposition bleibt.
 function viewAround(w, clientX, clientY, newVw) {
   const r = mapEl.getBoundingClientRect();
   const fx = (clientX - r.left) / r.width, fz = (clientY - r.top) / r.height;
-  newVw = Math.min(MAP.size * 1.5, Math.max(120, newVw));
-  setView(w.x - fx * newVw, w.z - fz * newVw, newVw);
+  const ar = mapAspect();
+  newVw = Math.min(MAP.size * 1.5 / Math.min(1, ar), Math.max(120, newVw));
+  setView(w.x - fx * newVw, w.z - fz * newVw * ar, newVw);
 }
 function zoomAt(clientX, clientY, newVw) { viewAround(worldAt(clientX, clientY), clientX, clientY, newVw); }
 function zoomCenter(factor) {
@@ -1566,8 +1607,9 @@ mapEl.addEventListener("pointerdown", (e) => {
     if (stroke) { stroke = null; pendingDraw ? drawPreview(pendingDraw.pts) : clearPreview(); }
     const m = mid();
     pan = null; pinch = { d: dist(), vw: MAP.vw, w: worldAt(m.x, m.y) };
-  } else if (pts.size === 1 && e.button > 0) {   // rechte oder mittlere Maustaste: verschieben
-    pan = { sx: e.clientX, sy: e.clientY, vx: MAP.vx, vz: MAP.vz };
+  } else if (pts.size === 1 && (e.button > 0 || mapMode === "move")) {   // Bewegen-Modus oder rechte Maustaste: verschieben
+    pan = { sx: e.clientX, sy: e.clientY, vx: MAP.vx, vz: MAP.vz, moved: false, target: e.target, click: e.button === 0 };
+    mapEl.classList.add("grabbing");
   } else if (pts.size === 1) {
     stroke = { list: [penPoint(e)], sx: e.clientX, sy: e.clientY, moved: false, target: e.target };
   }
@@ -1579,6 +1621,8 @@ mapEl.addEventListener("pointermove", (e) => {
   pt.x = e.clientX; pt.y = e.clientY;
   if (pinch && pts.size === 2) { const m = mid(); viewAround(pinch.w, m.x, m.y, pinch.vw * pinch.d / Math.max(1, dist())); return; }
   if (pan) {
+    if (!pan.moved && Math.hypot(e.clientX - pan.sx, e.clientY - pan.sy) > 5) pan.moved = true;
+    if (!pan.moved) return;
     const r = mapEl.getBoundingClientRect();
     setView(pan.vx - ((e.clientX - pan.sx) * MAP.vw) / r.width, pan.vz - ((e.clientY - pan.sy) * MAP.vw) / r.width, MAP.vw);
   } else if (stroke) {
@@ -1596,7 +1640,12 @@ function endPointer(e, cancelled) {
   if (!pts.has(e.pointerId)) return;
   pts.delete(e.pointerId);
   if (pts.size < 2) pinch = null;
-  pan = null;
+  const pn = pan; pan = null; mapEl.classList.remove("grabbing");
+  if (pn && !pn.moved && pn.click && !cancelled) {   // im Bewegen-Modus nur geklickt: Bauplatz auswaehlen
+    const g = pn.target && pn.target.closest ? pn.target.closest("[data-id]") : null;
+    select(g ? Number(g.getAttribute("data-id")) : null);
+    return;
+  }
   if (!stroke) return;
   const s = stroke; stroke = null;
   if (cancelled) { pendingDraw ? drawPreview(pendingDraw.pts) : clearPreview(); return; }
@@ -1619,7 +1668,49 @@ mapEl.addEventListener("wheel", (e) => {
 $("zoom-in").addEventListener("click", () => zoomCenter(1 / 1.5));
 $("zoom-out").addEventListener("click", () => zoomCenter(1.5));
 $("zoom-fit").addEventListener("click", fitView);
-window.addEventListener("resize", () => { if (MAP.ready && !$("view-map").hidden) drawPlots(); });
+mapEl.addEventListener("dblclick", (e) => { if (mapMode === "move") zoomAt(e.clientX, e.clientY, MAP.vw / 1.8); });
+window.addEventListener("resize", () => { if (MAP.ready && !$("view-map").hidden) keepView(); });
+
+/* ---------- Bewegen / Zeichnen ---------- */
+let mapMode = "move";
+function setMapMode(m) {
+  mapMode = m;
+  $("mode-move").setAttribute("aria-pressed", String(m === "move"));
+  $("mode-draw").setAttribute("aria-pressed", String(m === "draw"));
+  mapEl.classList.toggle("move", m === "move");
+  if (!pendingDraw) $("map-hint").textContent = m === "draw"
+    ? "Male jetzt mit gedrückter Maustaste (oder mit dem Finger) den Umriss deines Bauplatzes. Verschieben geht weiter mit der rechten Maustaste oder zwei Fingern."
+    : HINT;
+}
+$("mode-move").addEventListener("click", () => setMapMode("move"));
+$("mode-draw").addEventListener("click", () => setMapMode("draw"));
+
+/* ---------- Vollbild ---------- */
+const mapWrap = $("mapwrap");
+function setFs(on) {
+  mapWrap.classList.toggle("fs", on);
+  document.body.classList.toggle("map-fs", on);
+  $("map-fs").setAttribute("aria-pressed", String(on));
+  $("map-fs").textContent = on ? "Vollbild beenden" : "Vollbild";
+  requestAnimationFrame(keepView);
+}
+$("map-fs").addEventListener("click", async () => {
+  const on = !mapWrap.classList.contains("fs");
+  if (on) {
+    setFs(true);
+    try { if (mapWrap.requestFullscreen) await mapWrap.requestFullscreen(); } catch { /* z. B. iPhone: dann nur als Ebene ueber der Seite */ }
+  } else {
+    if (document.fullscreenElement) { try { await document.exitFullscreen(); } catch { /* egal */ } }
+    setFs(false);
+  }
+});
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && mapWrap.classList.contains("fs")) setFs(false); else keepView(); });
+document.addEventListener("keydown", (e) => {
+  if ($("view-map").hidden || /INPUT|TEXTAREA/.test((e.target && e.target.tagName) || "")) return;
+  if (e.key === "Escape" && mapWrap.classList.contains("fs") && !document.fullscreenElement) setFs(false);
+  else if (e.key === "+" ) zoomCenter(1 / 1.5);
+  else if (e.key === "-") zoomCenter(1.5);
+});
 
 /* ---------- Formular ---------- */
 const form = $("plot-form");
@@ -1678,6 +1769,7 @@ form.addEventListener("submit", async (ev) => {
     keep.set("mc_color", plot.color);
     closeForm();
     select(res.id);
+    setMapMode("move");
     $("map-hint").textContent = "Dein Bauplatz ist gespeichert. Alle sehen ihn jetzt auf der Karte.";
   } catch (e) {
     $("form-error").textContent = e.message;
@@ -1807,7 +1899,7 @@ function showView(v) {
   document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === v)));
   if (v === "map") {
     $("map-hint").textContent = $("map-hint").textContent || HINT;
-    if (MAP.ready) { drawGrid(); drawPlots(); }
+    if (MAP.ready) requestAnimationFrame(() => (MAP.fitOk ? keepView() : fitView()));
   }
 }
 function applyHash() {
@@ -1861,7 +1953,7 @@ function mapLock() {
     const sec = Math.floor(ms / 1000), pad = (n) => String(n).padStart(2, "0");
     $("ml-d").textContent = pad(Math.floor(sec / 86400)); $("ml-h").textContent = pad(Math.floor(sec / 3600) % 24);
     $("ml-m").textContent = pad(Math.floor(sec / 60) % 60); $("ml-s").textContent = pad(sec % 60);
-  } else if (was && !view.hidden && MAP.ready) { drawGrid(); drawPlots(); }   // gerade freigeschaltet
+  } else if (was && !view.hidden && MAP.ready) requestAnimationFrame(() => (MAP.fitOk ? keepView() : fitView()));   // gerade freigeschaltet
 }
 setInterval(mapLock, 1000);
 
@@ -2070,6 +2162,13 @@ function startFireworks(durationMs) {
   const fmt = (d) => d.toLocaleString("de-DE", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
   const list = (CONFIG.countdowns || []).map((c) => ({ ...c, t: new Date(c.at) })).filter((c) => !isNaN(c.t));
   if (!list.length) { $("cd-title").textContent = "Bald geht es los"; $("cd-date").textContent = "Datum folgt"; box.classList.add("open"); return; }
+  // Das Plugin meldet die End-Oeffnung (aenderbar mit /endoeffnung): dann gilt diese Zeit statt der aus CONFIG
+  window.setEndOpen = (ms) => {
+    const c = list.find((x) => x.phase === "end"), cc = (CONFIG.countdowns || []).find((x) => x.phase === "end");
+    if (!c || !ms || c.t.getTime() === ms) return;
+    c.t = new Date(ms); c.fired = false;
+    if (cc) cc.at = new Date(ms).toISOString();
+  };
   let shown = null;
   function tick() {
     const now = Date.now();
