@@ -1072,7 +1072,7 @@ const STATS = [
   { id: "playtime",     label: "Spielzeit",     get: (p) => p.playtimeMin ?? 0, fmt: (v) => v >= 6000 ? fmtNum(Math.floor(v / 60)) + " h" : fmtTime(v), unit: "gespielt" },
   { id: "mined",        label: "Abgebaut",      get: (p) => p.blocksMined ?? 0, fmt: fmtNum, unit: "Blöcke abgebaut" },
   { id: "placed",       label: "Platziert",     get: (p) => p.blocksPlaced ?? 0, fmt: fmtNum, unit: "Blöcke platziert" },
-  { id: "diamonds",     label: "Diamanten",     get: (p) => p.diamonds ?? 0, fmt: fmtNum, unit: "Diamanten gesammelt" },
+  { id: "diamonds",     label: "Diamanten",     get: (p) => p.diamonds ?? 0, fmt: fmtNum, unit: "Diamanten abgebaut" },
   { id: "deaths",       label: "Tode",          get: (p) => p.deaths,        fmt: fmtNum,   unit: "Tode" },
   { id: "mobKills",     label: "Mob-Kills",     get: (p) => p.mobKills,      fmt: fmtNum,   unit: "Mobs besiegt" },
   { id: "playerKills",  label: "Spieler-Kills", get: (p) => p.playerKills,   fmt: fmtNum,   unit: "Spieler besiegt" },
