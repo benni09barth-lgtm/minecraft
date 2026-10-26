@@ -397,7 +397,7 @@
 
   .summary .chip { overflow: hidden; }
   .summary .chip span { overflow-wrap: normal; hyphens: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .summary .chip strong { font-size: clamp(13px, 1.7vw, 16px); white-space: normal; overflow-wrap: anywhere; }
+  .summary .chip strong { font-size: clamp(14px, 1.6vw, 18px); white-space: nowrap; overflow-wrap: normal; overflow: hidden; text-overflow: clip; }
   @media (max-width: 560px) {
     :root[data-layout="podium"] .row[data-rank="1"] .name p, :root[data-layout="podium"] .row[data-rank="2"] .name p, :root[data-layout="podium"] .row[data-rank="3"] .name p,
     :root[data-layout="podium"] .row[data-rank] .val span { display: none; }
@@ -959,7 +959,7 @@ const CONFIG = {
   // phase "start" = Bild als Hintergrund, "end" = Sternenhimmel mit Drache und Shulker.
   countdowns: [
     { title: "Der Server startet in", done: "Der Server ist gestartet!", at: "2026-10-24T14:30", fireworkHours: 5, phase: "start" },
-    { title: "Das End öffnet in", done: "Das End ist offen!", at: "2026-10-30T19:00", fireworkHours: 0, phase: "end" },
+    { title: "Das End öffnet in", done: "Das End ist offen!", at: "2026-10-30T19:30", fireworkHours: 0, phase: "end" },
   ],
   // Wie lange das Feuerwerk beim Oeffnen der Seite dauert (Sekunden).
   fireworkSeconds: 3,
@@ -1247,12 +1247,21 @@ function onData(data) {
   $("max").textContent = data.max ?? "?";
   const n = lastPlayers.length;
   const sum = (f) => lastPlayers.reduce((a, p) => a + (f(p) || 0), 0);
-  const short = (min) => min >= 6000 ? fmtNum(Math.floor(min / 60)) + " h" : fmtTime(min);   // ab 100 h ohne Minuten
+  // Kurz und in einer Zeile: unter 10 h mit Minuten, darueber nur Stunden, ab einer Million als "1,2 Mio."
+  const big = (v) => v >= 1e9 ? (v / 1e9).toLocaleString("de-DE", { maximumFractionDigits: 2 }) + " Mrd."
+    : v >= 1e6 ? (v / 1e6).toLocaleString("de-DE", { maximumFractionDigits: v >= 1e7 ? 1 : 2 }) + " Mio." : fmtNum(v);
+  const short = (min) => min >= 600 ? big(Math.floor(min / 60)) + " h" : fmtTime(min);
   setText($("sum-total"), n ? short(sum((p) => p.playtimeMin)) : "–");
   setText($("sum-play"), n ? short(Math.round(sum((p) => p.playtimeMin) / n)) : "–");
-  setText($("sum-mined"), n ? fmtNum(sum((p) => p.blocksMined)) : "–");
-  setText($("sum-placed"), n ? fmtNum(sum((p) => p.blocksPlaced)) : "–");
-  setText($("sum-dia"), n ? fmtNum(sum((p) => p.diamonds)) : "–");
+  setText($("sum-mined"), n ? big(sum((p) => p.blocksMined)) : "–");
+  setText($("sum-placed"), n ? big(sum((p) => p.blocksPlaced)) : "–");
+  setText($("sum-dia"), n ? big(sum((p) => p.diamonds)) : "–");
+  // Falls eine Zahl trotzdem nicht in die Kachel passt: Schrift verkleinern
+  for (const id of ["sum-total", "sum-play", "sum-mined", "sum-placed", "sum-dia"]) {
+    const el = $(id); el.style.fontSize = "";
+    let fs = parseFloat(getComputedStyle(el).fontSize) || 16;
+    while (el.scrollWidth > el.clientWidth + 1 && fs > 10) { fs -= 1; el.style.fontSize = fs + "px"; }
+  }
   render();
 }
 
